@@ -58,10 +58,10 @@ func Aircrack(bssid, essid, wordlist, target string) (string, error) {
 
 // KeyFromOutput extracts the key that aircrack-ng has found from its output
 func KeyFromOutput(output string) string {
-	begin := strings.Index(output, "[") + 2
-	end := strings.LastIndex(output, "]") - 1
+	begin := strings.Index(output, "[") + 1
+	end := strings.LastIndex(output, "]")
 	if end <= begin {
 		return ""
 	}
-	return output[begin:end]
+	return strings.TrimSpace(output[begin:end])
 }
