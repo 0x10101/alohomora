@@ -107,7 +107,6 @@ func writeTmpBinFile(data []byte) (string, error) {
 	}
 
 	defer hs.Close()
-	//defer os.Remove(path)
 
 	_, err = hs.Write(data)
 	if err != nil {

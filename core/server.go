@@ -50,6 +50,8 @@ type Server struct {
 	maxjobs            *big.Int
 	taskTimeout        uint64
 	started            time.Time
+	ESSID              string
+	BSSID              string
 }
 
 func newServer(opts *opts.Options) *Server {
@@ -57,7 +59,8 @@ func newServer(opts *opts.Options) *Server {
 		term.Problem("Invalid queue size detected, defaulting to 1\n")
 		opts.QueueSize = 1
 	}
-	return &Server{
+
+	server := &Server{
 		Clients:            make(map[*Client]bool),
 		StartedJobs:        big.NewInt(0),
 		TotalJobs:          big.NewInt(0),
@@ -77,6 +80,9 @@ func newServer(opts *opts.Options) *Server {
 		taskTimeout:        opts.MaxTime,
 		started:            time.Now(),
 	}
+
+	return server
+
 }
 
 func showOpts(opts *opts.Options) {

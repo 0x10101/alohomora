@@ -30,6 +30,7 @@ func main() {
 	}
 
 	if opts.Server {
+
 		server, err := core.Serve(opts)
 		if err != nil {
 			term.Error("Unable to start server: %s\n", err)

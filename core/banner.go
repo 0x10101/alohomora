@@ -15,7 +15,7 @@ const (
 	Author string = "Stefan 'steps0x29a' Matyba"
 
 	// Website will point to the documentation website once there is one
-	Website string = "none"
+	Website string = ""
 )
 
 // Banner prints a fancy banner.

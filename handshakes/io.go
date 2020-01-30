@@ -24,9 +24,22 @@ func NewHandshake() *Handshake {
 
 func (handshake *Handshake) Read(path string) error {
 	filename := filepath.Base(path)
-	essid, bssid, err := parseHandshakeFilename(filename)
+
+	essid, bssid, err := HandshakeInfo(path)
 	if err != nil {
-		return err
+		// Attempt parsing the handshake filename as a last resort
+		essid, bssid, err = parseHandshakeFilename(filename)
+		if err != nil {
+			return err
+		}
+	}
+
+	if essid == "" {
+		return errors.New("Unable to determine ESSID, can't crack this handshake")
+	}
+
+	if bssid == "" {
+		return errors.New("Unable to determine BSSID, can't crack this handshake")
 	}
 
 	f, err := os.Open(path)

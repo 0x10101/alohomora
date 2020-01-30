@@ -63,5 +63,6 @@ func KeyFromOutput(output string) string {
 	if end <= begin {
 		return ""
 	}
+
 	return strings.TrimSpace(output[begin:end])
 }
