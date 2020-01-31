@@ -8,7 +8,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/steps0x29a/alohomora/gen"
+	"github.com/steps0x29a/alohomora/report"
+
 	"github.com/steps0x29a/alohomora/handshakes"
 
 	"github.com/steps0x29a/alohomora/msg"
@@ -18,7 +19,6 @@ import (
 	"github.com/steps0x29a/alohomora/opts"
 	"github.com/steps0x29a/islazy/bigint"
 	"github.com/steps0x29a/islazy/bytes"
-	"github.com/steps0x29a/islazy/fio"
 	"github.com/steps0x29a/islazy/term"
 )
 
@@ -45,13 +45,12 @@ type Server struct {
 	maximumJobsReached bool
 	verbose            bool
 	timeout            uint64
-	Report             string
+	ReportFile         string
 	queuesize          uint64
 	maxjobs            *big.Int
 	taskTimeout        uint64
 	started            time.Time
-	ESSID              string
-	BSSID              string
+	report             *report.Report
 }
 
 func newServer(opts *opts.Options) *Server {
@@ -79,6 +78,7 @@ func newServer(opts *opts.Options) *Server {
 		maxjobs:            bigint.ToBigInt(opts.MaxJobs),
 		taskTimeout:        opts.MaxTime,
 		started:            time.Now(),
+		report:             report.New(),
 	}
 
 	return server
@@ -98,26 +98,39 @@ func showOpts(opts *opts.Options) {
 	fmt.Println("")
 }
 
-func (server *Server) onNewClient(client *Client) {
+func (server *Server) onClientConnected(client *Client) {
+	server.Lock()
+	defer server.Unlock()
 	term.Info("Client connected: %s\n", term.BrightBlue(client.FullID()))
+	clientCount := uint(len(server.Clients))
+	if clientCount > server.report.MaxClientsConnected {
+		server.report.MaxClientsConnected = clientCount
+	}
 }
 
 func (server *Server) onClientLeft(client *Client) {
 	term.Info("Client left: %s\n", term.Red(client.FullID()))
 }
 
+func (server *Server) checkErrors() {
+	for {
+		err := <-server.Errors
+		term.Error("Server error: %s\n", term.BrightRed(err.Error()))
+	}
+}
+
 func (server *Server) onProgress() {
-	total := server.TotalJobs
+	/*total := server.TotalJobs
 	finished := term.Reverse(term.InsertAfterEvery(term.Reverse(server.FinishedJobs.String()), '.', 3))
 	pending := len(server.Pending)
 	clients := len(server.Clients)
-	queued := len(server.Queue)
 
 	percent := bigint.Percent(total, server.FinishedJobs)
 	numStrTotal := term.Reverse(term.InsertAfterEvery(term.Reverse(total.String()), '.', 3))
-	if server.verbose {
-		term.Info("Progress: %s/%s (%0.2f%%, %d clients connected, %d jobs pending, %d queued)\n", finished, numStrTotal, percent, clients, pending, queued)
-	}
+	*/
+	/*if server.verbose {
+		term.Info("Progress: %s/%s (%0.2f%%, %d clients connected, %d jobs pending)\n", finished, numStrTotal, percent, clients, pending)
+	}*/
 
 }
 
@@ -130,7 +143,7 @@ func (server *Server) loop() {
 				server.Clients[client] = false
 				server.Unlock()
 				go server.receive(client)
-				server.onNewClient(client)
+				server.onClientConnected(client)
 			}
 
 		case client := <-server.unregister:
@@ -205,31 +218,56 @@ func (server *Server) onClientResponse(client *Client, message *msg.Message) {
 	server.Lock()
 
 	result, err := decodeResult(message.Payload)
+	job := server.Pending[client]
+	server.report.PasswordsTried = bigint.Add(server.report.PasswordsTried, big.NewInt(job.Gen.Amount))
 	delete(server.Pending, client)
 	server.FinishedJobs = bigint.Add(server.FinishedJobs, big.NewInt(1))
+	server.report.FinishedRuns = bigint.Copy(server.FinishedJobs)
 	server.Unlock()
 
 	if err != nil {
 		server.Errors <- err
 		term.Error("Unable to decode result: %s\n", err)
 	} else {
+
 		if result.Success {
 			term.Success("Client %s cracked the password: %s\n", term.BrightBlue(client.ShortID()), term.LabelGreen(result.Payload))
 
-			// Write report
-			server.onClientSuccess(client, result.Payload)
+			// As of now we can safely assume that the payload is a WPA2 payload
+			wpaPayload, err := job.decodeWPA2()
+			if err != nil {
+				server.Errors <- fmt.Errorf(fmt.Sprintf("Unable to decode job %s's payload as WPA2 payload: %s", job.ID.String()[:8], err.Error()))
+			}
+			server.onClientSuccess(client, fmt.Sprintf("%s %s", wpaPayload.ESSID, wpaPayload.BSSID), result.Payload)
 
-			server.Terminated <- true
+			//server.Terminated <- true
+			server.Terminate()
 		} else {
-			term.Error("Client %s %s to crack %s\n", term.BrightBlue(client.ShortID()), term.BrightRed("failed"), term.Cyan(result.JobID.String()[:8]))
+			term.Info("Client %s %s to crack %s\n", term.BrightBlue(client.ShortID()), term.BrightRed("failed"), term.Cyan(result.JobID.String()[:8]))
 		}
 	}
 
 	server.onClientIdle(client, message)
 }
 
-func (server *Server) onClientSuccess(client *Client, password string) {
-	fio.WriteTo(server.Report, password)
+func (server *Server) onClientSuccess(client *Client, username, password string) {
+	term.Info("Saving password to %s\n", server.ReportFile)
+	server.Lock()
+	defer server.Unlock()
+	server.report.Success = true
+	server.report.AccessData.Username = username
+	server.report.AccessData.Password = password
+	server.report.SuccessClientAddress = client.Socket.RemoteAddr()
+	server.report.SuccessClientID = client.ShortID()
+}
+
+// Terminate terminates the server, saves current time to report
+func (server *Server) Terminate() {
+	server.Lock()
+	defer server.Unlock()
+	server.report.EndTimestamp = time.Now()
+	server.Terminated <- true
+
 }
 
 func (server *Server) onClientError(client *Client, message *msg.Message) {
@@ -244,6 +282,12 @@ func (server *Server) onClientError(client *Client, message *msg.Message) {
 	} else {
 		term.Error("Client %s crashed during %s\n", term.BrightBlue(client.ShortID()), term.Cyan(result.JobID.String()[:8]))
 	}
+}
+
+// Report returns the server's report data at the current time
+// (might be incomplete before all jobs have finished running)
+func (server *Server) Report() *report.Report {
+	return server.report
 }
 
 func (server *Server) handle(client *Client, message *msg.Message) {
@@ -328,22 +372,37 @@ func (server *Server) KickAll() {
 
 func (server *Server) dispatch() {
 	for {
-		job, _ := <-server.Queue
+		select {
+		case <-server.Terminated:
+			{
+				return
+			}
+		default:
+			{
+				// Server not yet terminated, dispatch jobs
+				job, _ := <-server.Queue
 
-		payload, err := job.encode()
-		if err != nil {
-			server.Terminated <- true
-			return
+				payload, err := job.encode()
+				if err != nil {
+					//server.Terminated <- true
+					server.Terminate()
+					return
+				}
+
+				client, _ := <-server.freeClients
+
+				job.Started = time.Now()
+				server.Lock()
+				server.Pending[client] = job
+				message := msg.NewMessage(msg.Task, payload)
+				server.Unlock()
+				if server.verbose {
+					term.Info("Client %s %s with job %s\n", term.BrightBlue(client.ShortID()), term.BrightMagenta("tasked"), term.Cyan(job.ID.String()[:8]))
+				}
+				go server.send(client, message)
+			}
 		}
 
-		client, _ := <-server.freeClients
-
-		job.Started = time.Now()
-		server.Lock()
-		server.Pending[client] = job
-		message := msg.NewMessage(msg.Task, payload)
-		server.Unlock()
-		go server.send(client, message)
 	}
 }
 
@@ -354,7 +413,8 @@ func (server *Server) initCrackjobs(opts *opts.Options) {
 	if err != nil {
 		// This is bad
 		term.Error("Unable to process target: %s\n", err)
-		server.Terminated <- true
+		//server.Terminated <- true
+		server.Terminate()
 		return
 	}
 
@@ -377,7 +437,8 @@ func (server *Server) initCrackjobs(opts *opts.Options) {
 
 	if bigint.LessThan(remaining, big.NewInt(0)) {
 		term.Error("Invalid offset: %s\n", offset)
-		server.Terminated <- true
+		//server.Terminated <- true
+		server.Terminate()
 		return
 	}
 
@@ -390,17 +451,10 @@ func (server *Server) initCrackjobs(opts *opts.Options) {
 		remaining = bigint.Sub(remaining, runAmount)
 
 		var calcOffset = bigint.Add(offset, bigint.Mul(jobsize, jobindex))
-		var endOffset = bigint.Sub(bigint.Add(calcOffset, runAmount), big.NewInt(1))
 
-		first, err := gen.GeneratePassword(charset, length, calcOffset)
-		if err != nil && server.verbose {
-			term.Problem("Unable to preview first password for job: %s\n", err)
-		}
-
-		last, err := gen.GeneratePassword(charset, length, endOffset)
-		if err != nil && server.verbose {
-			term.Problem("Unable to preview last password for job: %s\n", err)
-		}
+		//var endOffset = bigint.Sub(bigint.Add(calcOffset, runAmount), big.NewInt(1))
+		//first, _ := gen.GeneratePassword(charset, length, calcOffset)
+		//last, _ := gen.GeneratePassword(charset, length, endOffset)
 
 		job, err := newWPA2Job(
 			handshake.Data,
@@ -414,14 +468,15 @@ func (server *Server) initCrackjobs(opts *opts.Options) {
 
 		if err != nil {
 			term.Error("Unable to generate Crackjob: %s\n", err)
-			server.Terminated <- true
+			//server.Terminated <- true
+			server.Terminate()
 			return
 		}
 
 		jobindex = bigint.Add(jobindex, big.NewInt(1))
-		if server.verbose {
-			term.Success("Generated Crackjob %s (%s - %s)\n", term.Cyan(job.String()), term.BrightGreen(first), term.BrightGreen(last))
-		}
+		/*if server.verbose {
+			term.Info("Generated Crackjob %s (%s - %s)\n", term.Cyan(job.String()), term.BrightBlue(first), term.BrightBlue(last))
+		}*/
 
 		server.Queue <- job
 		if bigint.GTE(jobindex, server.maxjobs) && bigint.GreaterThan(server.maxjobs, big.NewInt(0)) {
@@ -473,11 +528,13 @@ func (server *Server) updateProgress() {
 		if server.generationFinished && bigint.GTE(server.FinishedJobs, server.TotalJobs) {
 			server.onProgress()
 			term.Info("All jobs finished, terminating...\n")
-			server.Terminated <- true
+			server.Terminate()
+			//server.Terminated <- true
 		} else if server.maximumJobsReached && bigint.GTE(server.FinishedJobs, server.maxjobs) {
 			server.onProgress()
 			term.Info("Maximum number of jobs reached, terminating...\n")
-			server.Terminated <- true
+			//server.Terminated <- true
+			server.Terminate()
 		} else {
 			server.onProgress()
 		}
@@ -486,7 +543,8 @@ func (server *Server) updateProgress() {
 		if server.taskTimeoutReached() {
 			// Task timed out, kill everything
 			term.Info("Task timeout reached, terminating server...\n")
-			server.Terminated <- true
+			//server.Terminated <- true
+			server.Terminate()
 		}
 	}
 }
@@ -505,6 +563,13 @@ func Serve(opts *opts.Options) (*Server, error) {
 	showOpts(opts)
 
 	server := newServer(opts)
+	server.report.StartTimestamp = time.Now()
+	server.report.Charset = opts.Charset
+	server.report.Offset = bigint.ToBigInt(opts.Offset)
+	server.report.Length = opts.Passlen
+	server.report.Jobsize = bigint.ToBigInt(opts.Jobsize)
+	server.report.JobType = "WPA2" //currently hard-coded
+	server.report.Target = opts.Target
 
 	go server.accept(listener)
 	go server.loop()
@@ -512,6 +577,7 @@ func Serve(opts *opts.Options) (*Server, error) {
 	go server.dispatch()
 	go server.checkPending()
 	go server.updateProgress()
+	go server.checkErrors()
 
 	if server.verbose {
 		term.Info("Alohomora Server ready, waiting for clients...\n")

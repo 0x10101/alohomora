@@ -16,13 +16,12 @@ const (
 // on the machine executing alohomora.
 func AircrackAvailable() bool {
 
-	exe, err := getAircrackExecutable()
+	_, err := getAircrackExecutable()
 	if err != nil {
 		term.Error("Unable to find aircrack-ng: %s\n", err)
 		return false
 	}
 
-	term.Success("aircrack-ng found: %s\n", exe)
 	return true
 }
 
@@ -32,7 +31,7 @@ func getAircrackExecutable() (string, error) {
 		return value, nil
 	}
 
-	term.Warn("%s not set, assuming %s in $PATH\n", term.BrightBlue(aircrackExecutableKey), term.BrightMagenta("aircrack-ng"))
+	//term.Warn("%s not set, assuming %s in $PATH\n", term.BrightBlue(aircrackExecutableKey), term.BrightMagenta("aircrack-ng"))
 	exe, err := exec.LookPath("aircrack-ng")
 	if err != nil {
 		return "", err
@@ -42,14 +41,12 @@ func getAircrackExecutable() (string, error) {
 
 // Aircrack executes the aircrack-ng command, returning its output as a string
 func Aircrack(bssid, essid, wordlist, target string) (string, error) {
-	term.Info("Running aircrack...\n")
 	exe, _ := getAircrackExecutable()
 	var cmdline = []string{"-q", "-a2", "-b", bssid, "-e", essid, "-w", wordlist, target}
 	cmd := exec.Command(exe, cmdline...)
 
 	data, err := cmd.Output()
 	if err != nil {
-		term.Error("Error processing %s: %s\n", target, err)
 		return "", err
 	}
 

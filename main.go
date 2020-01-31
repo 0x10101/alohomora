@@ -1,6 +1,9 @@
 package main
 
 import (
+	"encoding/xml"
+	"fmt"
+	"io/ioutil"
 	"os"
 
 	"github.com/steps0x29a/alohomora/core"
@@ -40,12 +43,28 @@ func main() {
 		<-server.Terminated
 		server.KickAll()
 
+		report := server.Report()
+
+		if opts.ReportXMLTarget != "" {
+			xmlBytes, err := xml.MarshalIndent(report, "", "  ")
+			if err != nil {
+				term.Error("Unable to save XML report: %s\n", err)
+			} else {
+				err = ioutil.WriteFile(opts.ReportXMLTarget, xmlBytes, 0640)
+				if err != nil {
+					term.Error("Unable to save XML report: %s\n", err)
+				}
+			}
+		}
+
+		fmt.Println(report)
+		//b, _ := xml.MarshalIndent(server.Report(), "", "   ")
+		//fmt.Println(string(b))
+
 	} else {
 
 		found := core.AircrackAvailable()
-		if found {
-			term.Success("Aircrack found\n")
-		} else {
+		if !found {
 			term.Problem("Aircrack not found\n")
 			os.Exit(1)
 		}

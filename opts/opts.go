@@ -11,21 +11,21 @@ import (
 
 //The Options type wraps all command line options in a neat struct for easier handling.
 type Options struct {
-	Server    bool
-	Port      uint
-	Host      string
-	Verbose   bool
-	Unfancy   bool
-	Charset   string
-	Jobsize   string
-	Passlen   uint
-	Offset    string
-	Target    string
-	Timeout   uint64
-	Report    string
-	QueueSize uint64
-	MaxJobs   string
-	MaxTime   uint64
+	Server          bool
+	Port            uint
+	Host            string
+	Verbose         bool
+	Unfancy         bool
+	Charset         string
+	Jobsize         string
+	Passlen         uint
+	Offset          string
+	Target          string
+	Timeout         uint64
+	ReportXMLTarget string
+	QueueSize       uint64
+	MaxJobs         string
+	MaxTime         uint64
 }
 
 const (
@@ -83,10 +83,10 @@ const (
 	timeoutFlagDefault = 600
 	timeoutFlagHelp    = "Amount of seconds before a crack job times out and is considered lost (job will be rescheduled). Defaults to 600 (10 minutes)."
 
-	reportFlag        = "report"
+	/*reportFlag        = "report"
 	reportFlagShort   = "r"
 	reportFlagDefault = "alohomora.txt"
-	reportFlagHelp    = "Path to a file where alohomora writes its results to. Defaults to 'alohomora.txt'"
+	reportFlagHelp    = "Path to a file where alohomora writes its results to. Defaults to 'alohomora.txt'"*/
 
 	queueSizeFlag        = "queuesize"
 	queueSizeFlagShort   = "q"
@@ -142,8 +142,8 @@ func Parse() (*Options, error) {
 	flag.Uint64Var(&args.Timeout, timeoutFlag, timeoutFlagDefault, timeoutFlagHelp)
 	flag.Uint64Var(&args.Timeout, timeoutFlagShort, timeoutFlagDefault, timeoutFlagHelp)
 
-	flag.StringVar(&args.Report, reportFlag, reportFlagDefault, reportFlagHelp)
-	flag.StringVar(&args.Report, reportFlagShort, reportFlagDefault, reportFlagHelp)
+	//flag.StringVar(&args.ReportFile, reportFlag, reportFlagDefault, reportFlagHelp)
+	//flag.StringVar(&args.ReportFile, reportFlagShort, reportFlagDefault, reportFlagHelp)
 
 	flag.Uint64Var(&args.QueueSize, queueSizeFlag, queueSizeFlagDefault, queueSizeFlagHelp)
 	flag.Uint64Var(&args.QueueSize, queueSizeFlagShort, queueSizeFlagDefault, queueSizeFlagHelp)
@@ -153,6 +153,8 @@ func Parse() (*Options, error) {
 
 	flag.Uint64Var(&args.MaxTime, maxTimeFlag, maxTimeFlagDefault, maxTimeFlagHelp)
 	flag.Uint64Var(&args.MaxTime, maxTimeFlagShort, maxTimeFlagDefault, maxTimeFlagHelp)
+
+	flag.StringVar(&args.ReportXMLTarget, "oX", "", "If provided, an XML report will be generated")
 
 	flag.Parse()
 

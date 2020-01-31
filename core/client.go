@@ -69,9 +69,9 @@ func generatePasswords(params *GenerationParams) (string, error) {
 		return "", err
 	}
 	defer f.Close()
+	defer fmt.Println()
 
-	term.Info("Generating %d passwords\n", params.Amount)
-	var first, last string = "", ""
+	term.Info("Generating %d passwords...", params.Amount)
 
 	var i int64 = 0
 	for i = 0; i < params.Amount; i++ {
@@ -80,18 +80,14 @@ func generatePasswords(params *GenerationParams) (string, error) {
 			return "", err
 		}
 
-		if first == "" {
-			first = pw
-		}
-		last = pw
-
 		_, err = f.WriteString(fmt.Sprintf("%s\n", pw))
 		if err != nil {
 			return "", err
 		}
 	}
 
-	term.Info("Generated %d passwords (%s - %s)\n", params.Amount, first, last)
+	//term.Info("Generated %d passwords\n", params.Amount)
+	fmt.Printf(term.BrightGreen("OK"))
 	return path, nil
 }
 
@@ -144,10 +140,13 @@ func (client *Client) work(job *CrackJob) ([]byte, error) {
 
 		defer os.Remove(handshakeFilepath)
 
+		term.Info("Running aircrack-ng...")
 		output, err := Aircrack(payload.BSSID, payload.ESSID, pwFilepath, handshakeFilepath)
 		if err != nil {
+			fmt.Printf("%s\n", term.BrightRed("ERROR"))
 			return nil, err
 		}
+		fmt.Printf("%s\n", term.BrightGreen("OK"))
 
 		password := KeyFromOutput(output)
 		found := password != ""
