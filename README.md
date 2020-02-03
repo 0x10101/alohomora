@@ -10,7 +10,7 @@ Let's say you have obtained a WPA2 handshake. You then start alohomora in server
     ./alohomora -server -port 7890 -ip <external ip> -target /path/to/<ESSID>_<BSSID>.pcap -charset abcdefghijklmnopqrstuvwxyz -length 8 -jobsize 10000
 This will start the server on port 7890, listening for connections to your external IP address. Omitting the ip parameter will make it listen on localhost. 
 
-The PCAP file must be named `<ESSID>_<BSSID>.pcap` in order for alohomora to be able to recognize it. This will change in a future release.
+The PCAP file is parsed by alohomora. It tries to find both the ESSID and BSSID in it to pass them to the clients. If your handshake data does not contain either an ESSID or a BSSID, name the file `<ESSID>_<BSSID>.pcap` in order for alohomora to be able to recognize it. 
 
 The above command will bruteforce all lowercase (a-z) 8-character passwords, e.g. `aaaaaaaa` to `zzzzzzzz`. Each client will be given up to 10000 passwords per iteration.
 
