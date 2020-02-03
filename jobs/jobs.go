@@ -1,4 +1,4 @@
-package core
+package jobs
 
 import (
 	"bytes"
@@ -68,7 +68,7 @@ type CrackJob struct {
 	Started time.Time
 }
 
-func (result *CrackJobResult) encode() ([]byte, error) {
+func (result *CrackJobResult) Encode() ([]byte, error) {
 	buffer := new(bytes.Buffer)
 	encoder := gob.NewEncoder(buffer)
 	err := encoder.Encode(result)
@@ -78,7 +78,7 @@ func (result *CrackJobResult) encode() ([]byte, error) {
 	return buffer.Bytes(), nil
 }
 
-func decodeResult(data []byte) (*CrackJobResult, error) {
+func DecodeResult(data []byte) (*CrackJobResult, error) {
 	tmp := bytes.NewBuffer(data)
 	tmpStruct := new(CrackJobResult)
 	decoder := gob.NewDecoder(tmp)
@@ -90,7 +90,7 @@ func decodeResult(data []byte) (*CrackJobResult, error) {
 	return tmpStruct, nil
 }
 
-func (params *GenerationParams) encode() ([]byte, error) {
+func (params *GenerationParams) Encode() ([]byte, error) {
 	buffer := new(bytes.Buffer)
 	encoder := gob.NewEncoder(buffer)
 	err := encoder.Encode(params)
@@ -104,7 +104,7 @@ func (job *CrackJob) String() string {
 	return fmt.Sprintf("%s", job.ID.String()[:8])
 }
 
-func decodeJob(data []byte) (*CrackJob, error) {
+func DecodeJob(data []byte) (*CrackJob, error) {
 	tmp := bytes.NewBuffer(data)
 	tmpStruct := new(CrackJob)
 	decoder := gob.NewDecoder(tmp)
@@ -117,7 +117,7 @@ func decodeJob(data []byte) (*CrackJob, error) {
 
 }
 
-func (job *CrackJob) decodeWPA2() (*WPA2Payload, error) {
+func (job *CrackJob) DecodeWPA2() (*WPA2Payload, error) {
 	tmp := bytes.NewBuffer(job.Payload)
 	tmpStruct := new(WPA2Payload)
 	decoder := gob.NewDecoder(tmp)
@@ -128,7 +128,7 @@ func (job *CrackJob) decodeWPA2() (*WPA2Payload, error) {
 	return tmpStruct, nil
 }
 
-func (job *CrackJob) encode() ([]byte, error) {
+func (job *CrackJob) Encode() ([]byte, error) {
 	buffer := new(bytes.Buffer)
 	encoder := gob.NewEncoder(buffer)
 	err := encoder.Encode(job)
@@ -138,7 +138,7 @@ func (job *CrackJob) encode() ([]byte, error) {
 	return buffer.Bytes(), nil
 }
 
-func (payload *WPA2Payload) encode() ([]byte, error) {
+func (payload *WPA2Payload) Encode() ([]byte, error) {
 	buffer := new(bytes.Buffer)
 	encoder := gob.NewEncoder(buffer)
 	err := encoder.Encode(payload)
@@ -148,7 +148,7 @@ func (payload *WPA2Payload) encode() ([]byte, error) {
 	return buffer.Bytes(), nil
 }
 
-func newWPA2Job(data []byte, charset []rune, length int64, offset *big.Int, amount int64, essid, bssid string) (*CrackJob, error) {
+func NewWPA2Job(data []byte, charset []rune, length int64, offset *big.Int, amount int64, essid, bssid string) (*CrackJob, error) {
 	id, err := uuid.NewV4()
 	if err != nil {
 		return nil, err
@@ -156,7 +156,7 @@ func newWPA2Job(data []byte, charset []rune, length int64, offset *big.Int, amou
 
 	params := &GenerationParams{Charset: charset, Length: length, Offset: offset, Amount: amount}
 	wpa2Payload := &WPA2Payload{Data: data, ESSID: essid, BSSID: bssid}
-	payload, err := wpa2Payload.encode()
+	payload, err := wpa2Payload.Encode()
 
 	if err != nil {
 		return nil, err

@@ -6,7 +6,7 @@ import (
 
 const (
 	// Version determines the current version of alohomora
-	Version string = "0.2-alpha"
+	Version string = "0.3"
 
 	// Codename is a name for a version. Not used until 1.0 is released
 	Codename string = ""

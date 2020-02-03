@@ -12,6 +12,7 @@ import (
 
 	"github.com/steps0x29a/alohomora/handshakes"
 
+	"github.com/steps0x29a/alohomora/jobs"
 	"github.com/steps0x29a/alohomora/msg"
 
 	uuid "github.com/satori/go.uuid"
@@ -34,13 +35,13 @@ type Server struct {
 	StartedJobs        *big.Int
 	TotalJobs          *big.Int
 	FinishedJobs       *big.Int
-	Queue              chan *CrackJob
+	Queue              chan *jobs.CrackJob
 	freeClients        chan *Client
 	Terminated         chan bool
 	register           chan *Client
 	unregister         chan *Client
 	Errors             chan error
-	Pending            map[*Client]*CrackJob
+	Pending            map[*Client]*jobs.CrackJob
 	generationFinished bool
 	maximumJobsReached bool
 	verbose            bool
@@ -64,13 +65,13 @@ func newServer(opts *opts.Options) *Server {
 		StartedJobs:        big.NewInt(0),
 		TotalJobs:          big.NewInt(0),
 		FinishedJobs:       big.NewInt(0),
-		Queue:              make(chan *CrackJob, opts.QueueSize),
+		Queue:              make(chan *jobs.CrackJob, opts.QueueSize),
 		freeClients:        make(chan *Client),
 		Terminated:         make(chan bool),
 		register:           make(chan *Client),
 		unregister:         make(chan *Client),
 		Errors:             make(chan error),
-		Pending:            make(map[*Client]*CrackJob),
+		Pending:            make(map[*Client]*jobs.CrackJob),
 		generationFinished: false,
 		maximumJobsReached: false,
 		verbose:            opts.Verbose,
@@ -217,7 +218,7 @@ func (server *Server) onClientIdle(client *Client, message *msg.Message) {
 func (server *Server) onClientResponse(client *Client, message *msg.Message) {
 	server.Lock()
 
-	result, err := decodeResult(message.Payload)
+	result, err := jobs.DecodeResult(message.Payload)
 	job := server.Pending[client]
 	server.report.PasswordsTried = bigint.Add(server.report.PasswordsTried, big.NewInt(job.Gen.Amount))
 	delete(server.Pending, client)
@@ -234,7 +235,7 @@ func (server *Server) onClientResponse(client *Client, message *msg.Message) {
 			term.Success("Client %s cracked the password: %s\n", term.BrightBlue(client.ShortID()), term.LabelGreen(result.Payload))
 
 			// As of now we can safely assume that the payload is a WPA2 payload
-			wpaPayload, err := job.decodeWPA2()
+			wpaPayload, err := job.DecodeWPA2()
 			if err != nil {
 				server.Errors <- fmt.Errorf(fmt.Sprintf("Unable to decode job %s's payload as WPA2 payload: %s", job.ID.String()[:8], err.Error()))
 			}
@@ -273,7 +274,7 @@ func (server *Server) Terminate() {
 func (server *Server) onClientError(client *Client, message *msg.Message) {
 	// Payload should be CrackJobResult
 
-	result, err := decodeResult(message.Payload)
+	result, err := jobs.DecodeResult(message.Payload)
 	defer server.kick(client)
 
 	if err != nil {
@@ -382,7 +383,7 @@ func (server *Server) dispatch() {
 				// Server not yet terminated, dispatch jobs
 				job, _ := <-server.Queue
 
-				payload, err := job.encode()
+				payload, err := job.Encode()
 				if err != nil {
 					//server.Terminated <- true
 					server.Terminate()
@@ -456,7 +457,7 @@ func (server *Server) initCrackjobs(opts *opts.Options) {
 		//first, _ := gen.GeneratePassword(charset, length, calcOffset)
 		//last, _ := gen.GeneratePassword(charset, length, endOffset)
 
-		job, err := newWPA2Job(
+		job, err := jobs.NewWPA2Job(
 			handshake.Data,
 			charset,
 			length,

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/steps0x29a/alohomora/gen"
+	"github.com/steps0x29a/alohomora/jobs"
 	"github.com/steps0x29a/alohomora/msg"
 	"github.com/steps0x29a/islazy/bigint"
 	"github.com/steps0x29a/islazy/bytes"
@@ -59,7 +60,7 @@ func newClient(socket net.Conn) *Client {
 	}
 }
 
-func generatePasswords(params *GenerationParams) (string, error) {
+func generatePasswords(params *jobs.GenerationParams) (string, error) {
 	path, err := fio.TempFilePath()
 	if err != nil {
 		return "", err
@@ -113,10 +114,10 @@ func writeTmpBinFile(data []byte) (string, error) {
 
 }
 
-func (client *Client) work(job *CrackJob) ([]byte, error) {
+func (client *Client) work(job *jobs.CrackJob) ([]byte, error) {
 
 	// Decode crackjob' payload
-	if job.Type == WPA2 {
+	if job.Type == jobs.WPA2 {
 		term.Info("Working on %s (%s)...\n", term.BrightBlue(job.ID.String()[:8]), term.Cyan("WPA2"))
 
 		// Generate passwords
@@ -128,7 +129,7 @@ func (client *Client) work(job *CrackJob) ([]byte, error) {
 		defer os.Remove(pwFilepath)
 
 		// WPA2 payload
-		payload, err := job.decodeWPA2()
+		payload, err := job.DecodeWPA2()
 		if err != nil {
 			return nil, err
 		}
@@ -156,9 +157,9 @@ func (client *Client) work(job *CrackJob) ([]byte, error) {
 			term.Problem("%s\n", term.BrightRed("Too bad, password not cracked"))
 		}
 		fmt.Println()
-		result := &CrackJobResult{Payload: password, JobID: job.ID, Success: found}
+		result := &jobs.CrackJobResult{Payload: password, JobID: job.ID, Success: found}
 
-		return result.encode()
+		return result.Encode()
 	}
 
 	term.Warn("Only WPA2 jobs are implemented as of now\n")
@@ -183,7 +184,7 @@ func (client *Client) handle(message *msg.Message) {
 		{
 
 			// Decode payload
-			job, err := decodeJob(message.Payload)
+			job, err := jobs.DecodeJob(message.Payload)
 			if err != nil {
 				/// TODO: Send error message to server
 				errMsg := msg.NewMessage(msg.ClientError, []byte(err.Error()))
@@ -197,8 +198,8 @@ func (client *Client) handle(message *msg.Message) {
 			result, err := client.work(job)
 			if err != nil {
 				term.Error("Failed to attempt cracking: %s\n", err)
-				result := CrackJobResult{JobID: job.ID, Payload: "", Success: false}
-				encoded, err := result.encode()
+				result := jobs.CrackJobResult{JobID: job.ID, Payload: "", Success: false}
+				encoded, err := result.Encode()
 				if err != nil {
 					term.Error("Unable to encode crackjobresult: %s\n", err)
 					client.Terminated <- true
