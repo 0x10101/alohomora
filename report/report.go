@@ -11,28 +11,28 @@ import (
 // report to the user.
 type Report struct {
 	XMLName              xml.Name
-	StartTimestamp       time.Time  `xml:"started"`
-	EndTimestamp         time.Time  `xml:"stopped"`
-	Charset              string     `xml:"charset"`
-	Offset               *big.Int   `xml:"offset"`
-	Length               uint       `xml:"passlen"`
-	Jobsize              *big.Int   `xml:"jobsize"`
-	FinishedRuns         *big.Int   `xml:"runs"`
-	Success              bool       `xml:"success"`
-	SuccessClientID      string     `xml:"client"`
-	SuccessClientAddress net.Addr   `xml:"clientaddr"`
-	AccessData           AccessData `xml:"access"`
-	JobType              string     `xml:"type"`
-	Target               string     `xml:"target"` // might be type in the future
-	MaxClientsConnected  uint       `xml:"maxclients"`
-	PasswordsTried       *big.Int   `xml:"tries"`
+	StartTimestamp       time.Time  `xml:"started" json:"started"`
+	EndTimestamp         time.Time  `xml:"stopped" json:"stopped"`
+	Charset              string     `xml:"charset" json:"charset"`
+	Offset               *big.Int   `xml:"offset"  json:"offset"`
+	Length               uint       `xml:"passlen" json:"passlen"`
+	Jobsize              *big.Int   `xml:"jobsize" json:"jobsize"`
+	FinishedRuns         *big.Int   `xml:"runs"    json:"run"`
+	Success              bool       `xml:"success" json:"success"`
+	SuccessClientID      string     `xml:"client"  json:"client"`
+	SuccessClientAddress net.Addr   `xml:"clientaddr" json:"clientaddr"`
+	AccessData           AccessData `xml:"access" json:"access"`
+	JobType              string     `xml:"type" json:"type"`
+	Target               string     `xml:"target" json:"target"` // might be type in the future
+	MaxClientsConnected  uint       `xml:"maxclients" json:"maxclients"`
+	PasswordsTried       *big.Int   `xml:"tries" json:"tries"`
 }
 
 // The AccessData type wraps a generic username and password
 // combination for reporting purposes.
 type AccessData struct {
-	Username string `xml:"username"`
-	Password string `xml:"password"`
+	Username string `xml:"username" json:"username"`
+	Password string `xml:"password" json:"password"`
 }
 
 // New initializes a new empty report instance

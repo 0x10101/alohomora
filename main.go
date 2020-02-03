@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"encoding/xml"
 	"fmt"
 	"io/ioutil"
@@ -54,6 +55,18 @@ func main() {
 				err = ioutil.WriteFile(opts.ReportXMLTarget, xmlBytes, 0640)
 				if err != nil {
 					term.Error("Unable to save XML report: %s\n", err)
+				}
+			}
+		}
+
+		if opts.ReportJSONTarget != "" {
+			jsonBytes, err := json.MarshalIndent(report, "", " ")
+			if err != nil {
+				term.Error("Unable to save JSON report: %s\n", err)
+			} else {
+				err = ioutil.WriteFile(opts.ReportJSONTarget, jsonBytes, 0640)
+				if err != nil {
+					term.Error("Unable to save JSON report: %s\n", err)
 				}
 			}
 		}

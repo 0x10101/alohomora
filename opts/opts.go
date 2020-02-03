@@ -11,21 +11,22 @@ import (
 
 //The Options type wraps all command line options in a neat struct for easier handling.
 type Options struct {
-	Server          bool
-	Port            uint
-	Host            string
-	Verbose         bool
-	Unfancy         bool
-	Charset         string
-	Jobsize         string
-	Passlen         uint
-	Offset          string
-	Target          string
-	Timeout         uint64
-	ReportXMLTarget string
-	QueueSize       uint64
-	MaxJobs         string
-	MaxTime         uint64
+	Server           bool
+	Port             uint
+	Host             string
+	Verbose          bool
+	Unfancy          bool
+	Charset          string
+	Jobsize          string
+	Passlen          uint
+	Offset           string
+	Target           string
+	Timeout          uint64
+	ReportXMLTarget  string
+	ReportJSONTarget string
+	QueueSize        uint64
+	MaxJobs          string
+	MaxTime          uint64
 }
 
 const (
@@ -155,6 +156,7 @@ func Parse() (*Options, error) {
 	flag.Uint64Var(&args.MaxTime, maxTimeFlagShort, maxTimeFlagDefault, maxTimeFlagHelp)
 
 	flag.StringVar(&args.ReportXMLTarget, "oX", "", "If provided, an XML report will be generated")
+	flag.StringVar(&args.ReportJSONTarget, "oJ", "", "If provided, a JSON report will be generated")
 
 	flag.Parse()
 
