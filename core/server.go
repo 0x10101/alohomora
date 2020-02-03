@@ -23,10 +23,6 @@ import (
 	"github.com/steps0x29a/islazy/term"
 )
 
-const (
-	bufferSize uint32 = 4096
-)
-
 // A Server manages clients and jobs.
 type Server struct {
 	sync.Mutex
@@ -252,7 +248,6 @@ func (server *Server) onClientResponse(client *Client, message *msg.Message) {
 }
 
 func (server *Server) onClientSuccess(client *Client, username, password string) {
-	term.Info("Saving password to %s\n", server.ReportFile)
 	server.Lock()
 	defer server.Unlock()
 	server.report.Success = true

@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/steps0x29a/alohomora/core"
+	"github.com/steps0x29a/alohomora/ext"
 	"github.com/steps0x29a/alohomora/opts"
 	"github.com/steps0x29a/islazy/term"
 )
@@ -63,7 +64,7 @@ func main() {
 
 	} else {
 
-		found := core.AircrackAvailable()
+		found := ext.AircrackAvailable()
 		if !found {
 			term.Problem("Aircrack not found\n")
 			os.Exit(1)

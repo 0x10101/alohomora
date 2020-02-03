@@ -9,6 +9,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/steps0x29a/alohomora/ext"
 	"github.com/steps0x29a/alohomora/gen"
 	"github.com/steps0x29a/alohomora/jobs"
 	"github.com/steps0x29a/alohomora/msg"
@@ -20,6 +21,10 @@ import (
 	"github.com/steps0x29a/alohomora/opts"
 
 	uuid "github.com/satori/go.uuid"
+)
+
+const (
+	bufferSize uint32 = 4096
 )
 
 // A Client is basically a socket connection with some
@@ -142,14 +147,14 @@ func (client *Client) work(job *jobs.CrackJob) ([]byte, error) {
 		defer os.Remove(handshakeFilepath)
 
 		term.Info("Running aircrack-ng...")
-		output, err := Aircrack(payload.BSSID, payload.ESSID, pwFilepath, handshakeFilepath)
+		output, err := ext.Aircrack(payload.BSSID, payload.ESSID, pwFilepath, handshakeFilepath)
 		if err != nil {
 			fmt.Printf("%s\n", term.BrightRed("ERROR"))
 			return nil, err
 		}
 		fmt.Printf("%s\n", term.BrightGreen("OK"))
 
-		password := KeyFromOutput(output)
+		password := ext.KeyFromOutput(output)
 		found := password != ""
 		if found {
 			term.Success("%s\n", term.LabelGreen("Cracked the password!"))
