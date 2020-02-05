@@ -7,3 +7,11 @@ const (
 	// WPA2 identifies a WPA2 crackjob
 	WPA2 JobType = 1
 )
+
+func (t JobType) String() string {
+	if t == WPA2 {
+		return "WPA2"
+	}
+
+	return "?"
+}

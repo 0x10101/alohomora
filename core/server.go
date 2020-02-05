@@ -1,14 +1,17 @@
 package core
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"math/big"
 	"net"
+	"net/http"
 	"sync"
 	"time"
 
 	"github.com/steps0x29a/alohomora/report"
+	"github.com/steps0x29a/alohomora/rest"
 
 	"github.com/steps0x29a/alohomora/handshakes"
 
@@ -163,8 +166,10 @@ func (server *Server) accept(listener net.Listener) {
 		}
 
 		clientID, _ := uuid.NewV4()
-		client := Client{Socket: connection, ID: clientID}
-		server.register <- &client
+		client := newClient(connection)
+		client.ID = clientID
+		client.connected = time.Now()
+		server.register <- client
 	}
 }
 
@@ -217,6 +222,10 @@ func (server *Server) onClientResponse(client *Client, message *msg.Message) {
 	result, err := jobs.DecodeResult(message.Payload)
 	job := server.Pending[client]
 	server.report.PasswordsTried = bigint.Add(server.report.PasswordsTried, big.NewInt(job.Gen.Amount))
+	if client.tried == nil {
+		client.tried = big.NewInt(0)
+	}
+	client.tried = bigint.Add(client.tried, big.NewInt(job.Gen.Amount))
 	delete(server.Pending, client)
 	server.FinishedJobs = bigint.Add(server.FinishedJobs, big.NewInt(1))
 	server.report.FinishedRuns = bigint.Copy(server.FinishedJobs)
@@ -226,7 +235,7 @@ func (server *Server) onClientResponse(client *Client, message *msg.Message) {
 		server.Errors <- err
 		term.Error("Unable to decode result: %s\n", err)
 	} else {
-
+		client.finished++
 		if result.Success {
 			term.Success("Client %s cracked the password: %s\n", term.BrightBlue(client.ShortID()), term.LabelGreen(result.Payload))
 
@@ -396,6 +405,7 @@ func (server *Server) dispatch() {
 					term.Info("Client %s %s with job %s\n", term.BrightBlue(client.ShortID()), term.BrightMagenta("tasked"), term.Cyan(job.ID.String()[:8]))
 				}
 				go server.send(client, message)
+				client.assigned++
 			}
 		}
 
@@ -549,6 +559,42 @@ func (server *Server) taskTimeoutReached() bool {
 	return server.taskTimeout > 0 && time.Now().Sub(server.started).Seconds() > float64(server.taskTimeout)
 }
 
+func (server *Server) SlashRoot(res http.ResponseWriter, req *http.Request) {
+	fmt.Fprintf(res, "Hi there, this is alohomora!")
+}
+
+func (server *Server) ClientsHandleFunc(res http.ResponseWriter, req *http.Request) {
+	clients := make([]*ClientInfo, 0)
+	for client, connected := range server.Clients {
+		if connected {
+			clients = append(clients, client.Info())
+		}
+	}
+
+	data, err := json.MarshalIndent(clients, "", "  ")
+	fmt.Println("ERR:", err)
+	if err != nil {
+		term.Error("Unable to marshal clients to JSON: %s\n", err)
+	} else {
+		fmt.Fprint(res, string(data))
+	}
+}
+
+func (server *Server) PendingJobsHandleFunc(res http.ResponseWriter, req *http.Request) {
+	mapping := make(map[string]*jobs.CrackJobInfo)
+	for client, job := range server.Pending {
+		fmt.Println("MAPPING:", client, job)
+		mapping[client.ShortID()] = job.Info()
+	}
+
+	data, err := json.MarshalIndent(mapping, "", "  ")
+	if err != nil {
+		term.Error("Unable to marshal pending jobs to JSON: %s\n", err)
+	} else {
+		fmt.Fprint(res, string(data))
+	}
+}
+
 // Serve builds a new Server instance and starts listening on the provided address/port.
 func Serve(opts *opts.Options) (*Server, error) {
 	listener, err := net.Listen("tcp", fmt.Sprintf("%s:%d", opts.Host, opts.Port))
@@ -574,6 +620,10 @@ func Serve(opts *opts.Options) (*Server, error) {
 	go server.checkPending()
 	go server.updateProgress()
 	go server.checkErrors()
+
+	api := rest.NewRestAPI(server, "127.0.0.1", 29100)
+	go api.Serve()
+	//go server.serveREST()
 
 	if server.verbose {
 		term.Info("Alohomora Server ready, waiting for clients...\n")

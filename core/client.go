@@ -35,6 +35,31 @@ type Client struct {
 	Terminated chan bool
 	Errors     chan error
 	validated  chan bool
+	connected  time.Time
+	assigned   uint64
+	finished   uint64
+	tried      *big.Int
+}
+
+type ClientInfo struct {
+	ID        string   `json:"id"`
+	Address   string   `json:"address"`
+	Connected string   `json:"connected"`
+	Assigned  uint64   `json:"assigned"`
+	Finished  uint64   `json:"finished"`
+	Tried     *big.Int `json:"tried"`
+}
+
+func (client *Client) Info() *ClientInfo {
+	info := &ClientInfo{
+		ID:        client.ShortID(),
+		Address:   client.Socket.RemoteAddr().String(),
+		Connected: client.connected.String(),
+		Assigned:  client.assigned,
+		Finished:  client.finished,
+		Tried:     client.tried,
+	}
+	return info
 }
 
 // ShortID returns the first eight characters of a client's ID.
@@ -62,6 +87,9 @@ func newClient(socket net.Conn) *Client {
 		Terminated: make(chan bool),
 		Errors:     make(chan error),
 		validated:  make(chan bool),
+		assigned:   0,
+		finished:   0,
+		tried:      big.NewInt(0),
 	}
 }
 

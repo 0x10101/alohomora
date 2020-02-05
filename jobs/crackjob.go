@@ -8,6 +8,7 @@ import (
 	"time"
 
 	uuid "github.com/satori/go.uuid"
+	"github.com/steps0x29a/islazy/bigint"
 )
 
 // A CrackJob is something the server sends to a client in order for that
@@ -25,8 +26,30 @@ type CrackJob struct {
 	Started time.Time
 }
 
+type CrackJobInfo struct {
+	Type    string    `json:"type"`
+	ID      string    `json:"id"`
+	Started time.Time `json:"started"`
+	Charset string    `json:"charset"`
+	Length  int64     `json:"length"`
+	Amount  int64     `json:"amount"`
+	Offset  *big.Int  `json:"offset"`
+}
+
 func (job *CrackJob) String() string {
 	return fmt.Sprintf("%s", job.ID.String()[:8])
+}
+
+func (job *CrackJob) Info() *CrackJobInfo {
+	return &CrackJobInfo{
+		Type:    job.Type.String(),
+		ID:      job.ID.String()[:8],
+		Started: job.Started,
+		Charset: string(job.Gen.Charset),
+		Length:  job.Gen.Length,
+		Amount:  job.Gen.Amount,
+		Offset:  bigint.Copy(job.Gen.Offset),
+	}
 }
 
 func DecodeJob(data []byte) (*CrackJob, error) {
