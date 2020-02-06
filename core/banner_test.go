@@ -5,8 +5,8 @@ import (
 )
 
 func TestVersion(t *testing.T) {
-	if Version != "0.3" {
-		t.Fatalf("Version expected: '%s', got: '%s'", "0.2-alpha", Version)
+	if Version != "0.4" {
+		t.Fatalf("Version expected: '%s', got: '%s'", "0.4", Version)
 	}
 }
 
@@ -23,7 +23,7 @@ func TestAuthor(t *testing.T) {
 }
 
 func TestWebsite(t *testing.T) {
-	if Website != "" {
-		t.Fatalf("Website expected: '%s', got: '%s'", "", Website)
+	if Website != "https://github.com/steps0x29a/alohomora" {
+		t.Fatalf("Website expected: '%s', got: '%s'", "https://github.com/steps0x29a/alohomora", Website)
 	}
 }

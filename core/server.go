@@ -572,7 +572,6 @@ func (server *Server) ClientsHandleFunc(res http.ResponseWriter, req *http.Reque
 	}
 
 	data, err := json.MarshalIndent(clients, "", "  ")
-	fmt.Println("ERR:", err)
 	if err != nil {
 		term.Error("Unable to marshal clients to JSON: %s\n", err)
 	} else {
@@ -583,7 +582,6 @@ func (server *Server) ClientsHandleFunc(res http.ResponseWriter, req *http.Reque
 func (server *Server) PendingJobsHandleFunc(res http.ResponseWriter, req *http.Request) {
 	mapping := make(map[string]*jobs.CrackJobInfo)
 	for client, job := range server.Pending {
-		fmt.Println("MAPPING:", client, job)
 		mapping[client.ShortID()] = job.Info()
 	}
 
@@ -621,8 +619,11 @@ func Serve(opts *opts.Options) (*Server, error) {
 	go server.updateProgress()
 	go server.checkErrors()
 
-	api := rest.NewRestAPI(server, "127.0.0.1", 29100)
-	go api.Serve()
+	if opts.EnableREST {
+		term.Info("Enabling REST server on 127.0.0.1:29100\n")
+		api := rest.NewRestAPI(server, "127.0.0.1", 29100)
+		go api.Serve()
+	}
 	//go server.serveREST()
 
 	if server.verbose {

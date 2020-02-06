@@ -6,7 +6,7 @@ import (
 
 const (
 	// Version determines the current version of alohomora
-	Version string = "0.3"
+	Version string = "0.4"
 
 	// Codename is a name for a version. Not used until 1.0 is released
 	Codename string = ""
@@ -15,7 +15,7 @@ const (
 	Author string = "Stefan 'steps0x29a' Matyba"
 
 	// Website will point to the documentation website once there is one
-	Website string = ""
+	Website string = "https://github.com/steps0x29a/alohomora"
 )
 
 // Banner prints a fancy banner.

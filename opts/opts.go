@@ -27,6 +27,7 @@ type Options struct {
 	QueueSize        uint64
 	MaxJobs          string
 	MaxTime          uint64
+	EnableREST       bool
 }
 
 const (
@@ -157,6 +158,8 @@ func Parse() (*Options, error) {
 
 	flag.StringVar(&args.ReportXMLTarget, "oX", "", "If provided, an XML report will be generated")
 	flag.StringVar(&args.ReportJSONTarget, "oJ", "", "If provided, a JSON report will be generated")
+
+	flag.BoolVar(&args.EnableREST, "--rest", false, "If set, a REST server is started on port 29100")
 
 	flag.Parse()
 

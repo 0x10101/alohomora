@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"encoding/xml"
-	"fmt"
 	"io/ioutil"
 	"os"
 
@@ -81,9 +80,7 @@ func main() {
 			}
 		}
 
-		fmt.Println(report)
-		//b, _ := xml.MarshalIndent(server.Report(), "", "   ")
-		//fmt.Println(string(b))
+		report.Print()
 
 	} else {
 

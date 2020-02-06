@@ -2,9 +2,12 @@ package report
 
 import (
 	"encoding/xml"
+	"fmt"
 	"math/big"
 	"net"
 	"time"
+
+	"github.com/steps0x29a/islazy/term"
 )
 
 // The Report type wraps everything that the server can
@@ -33,6 +36,43 @@ type Report struct {
 type AccessData struct {
 	Username string `xml:"username" json:"username"`
 	Password string `xml:"password" json:"password"`
+}
+
+func fmtHeader(val string) string {
+	return term.Bold(term.White(val))
+}
+
+func fmtValue(val string) string {
+	return term.BrightBlue(val)
+}
+
+func reportLine(header, value string) {
+	fmt.Printf("%s\t\t%s\n", fmtHeader(header), fmtValue(value))
+}
+
+func (report *Report) Print() {
+	fmt.Println()
+
+	reportLine("Server started:", report.StartTimestamp.String())
+	reportLine("Server stopped:", report.EndTimestamp.String())
+	reportLine("Charset used:", report.Charset)
+	reportLine("Offset used:", report.Offset.String())
+	reportLine("Password len:", fmt.Sprintf("%d", report.Length))
+	reportLine("Jobsize used:", report.Jobsize.String())
+	reportLine("Finished runs:", report.FinishedRuns.String())
+	reportLine("Type of job:", report.JobType)
+	reportLine("Target used:", report.Target)
+	reportLine("Overall tries:", report.PasswordsTried.String())
+	reportLine("Max clients:", fmt.Sprintf("%d", report.MaxClientsConnected))
+	fmt.Printf("%s\t\t", fmtHeader("Password found:"))
+	if report.Success {
+		fmt.Printf("%s\n", term.Bold(term.BrightGreen("YES")))
+		fmt.Printf("%s\t\t%s\n", fmtHeader("Username:"), term.Bold(term.BrightGreen(report.AccessData.Username)))
+		fmt.Printf("%s\t\t%s\n", fmtHeader("Password:"), term.Bold(term.BrightGreen(report.AccessData.Password)))
+	} else {
+		fmt.Printf("%s\n", term.BgRed(term.White(term.Bold("NO"))))
+	}
+	reportLine("Winner client:", fmt.Sprintf("%s (%s)", report.SuccessClientID, report.SuccessClientAddress))
 }
 
 // New initializes a new empty report instance
