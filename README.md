@@ -44,6 +44,7 @@ There's so much to do...
  * Comment more
  * Write more tests
  * Write useful documentation (!)
+ * Make an awesome logo (anyone?)
 
 # Version history
 
