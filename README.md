@@ -1,5 +1,8 @@
 # alohomora
-alohomora is a distributed password cracking utility. A server provides cracking jobs to all clients connected to it. The clients do the actual heavy lifting and report back to the server.
+alohomora is a distributed cracking utility. A server provides cracking jobs to all clients connected to it. The clients do the actual heavy lifting and report back to the server.
+
+## Why?
+Because I wanted to learn Go and to see whether a distributed cracking utility was possible. Turns out it is!
 
 # Current version
 Current version is 0.4, which is the first version I feel comfortable making public. It's far from perfect, I know that. alohomora is provided as-is, no warranty of any kind!
@@ -16,17 +19,26 @@ This will start the server, listening for connections to your IP address. Omitti
 
 The PCAP file is parsed by alohomora. It tries to find both the ESSID and BSSID in it to pass them to the clients.
 
-The above command will bruteforce all lowercase (a-z) 8-character passwords, e.g. `aaaaaaaa` to `zzzzzzzz`. Each client will be given up to 10000 passwords per iteration.
+    ./alohomora -server -verbose -ip 127.0.0.1 -port 6666 -charset abcdefghijklmnopqrstuvwxyz -length 8 -target <path to pcap file>
+
+The above command will bruteforce all lowercase (a-z) 8-character passwords, e.g. `aaaaaaaa` to `zzzzzzzz`. Each client will be given up to 10000 passwords per iteration (default job size).
 
 In order to connect a client, simply give it the ip and port:
 
     ./alohomora -port <port> -ip <server ip>
+
+To connect a client to the server from the example above:
+
+    ./alohomora -port 6666 -ip 127.0.0.1
 
 That's all, actually.
 
 # Installing
 Clone the repository, then run it:
     go run main.go --help
+
+# Compatibility
+alohomora currently only works on Linux-based systems, as I have not yet found the time to make it run on Windows. But I guess that's fine. The server should run on Windows machines, as it does not require `aircrack-ng` to be available.
 
 # Legal disclaimer
 As you might have guessed, cracking WPA2 passphrases might be illegal. Do not use alohomora on handshakes that you don't have the permission to crack! I will not be held responsible for anything illegal you do with this tool!
@@ -47,6 +59,7 @@ There's so much to do...
  * Make an awesome logo (anyone?)
  * Improve REST interface
  * Make an awesome web interface for it
+ * Improve github presence
 
 # Version history
 
