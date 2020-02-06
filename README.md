@@ -35,7 +35,12 @@ That's all, actually.
 
 # Installing
 Clone the repository, then run it:
+
     go run main.go --help
+    
+Or simply download a release and run it:
+
+    ./alohomora-0.4 --help
 
 # Compatibility
 alohomora currently only works on Linux-based systems, as I have not yet found the time to make it run on Windows. But I guess that's fine. The server should run on Windows machines, as it does not require `aircrack-ng` to be available.
