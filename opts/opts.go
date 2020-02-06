@@ -118,7 +118,7 @@ func Parse() (*Options, error) {
 	flag.UintVar(&args.Port, portFlagShort, portFlagDefault, portFlagHelp)
 
 	flag.StringVar(&args.Host, serverFlag, serverFlagDefault, serverFlagHelp)
-	flag.StringVar(&args.Host, serverFlagShort, serverFlagHelp, serverFlagHelp)
+	flag.StringVar(&args.Host, serverFlagShort, serverFlagDefault, serverFlagHelp)
 
 	flag.BoolVar(&args.Unfancy, unfancyFlag, unfancyFlagDefault, unfancyFlagHelp)
 	flag.BoolVar(&args.Unfancy, unfancyFlagShort, unfancyFlagDefault, unfancyFlagHelp)
