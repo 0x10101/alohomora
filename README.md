@@ -43,6 +43,7 @@ There's so much to do...
  * Improve code quality
  * Comment more
  * Write more tests
+ * Write useful documentation (!)
 
 # Version history
 
