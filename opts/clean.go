@@ -1,7 +1,7 @@
 package opts
 
 import (
-	"github.com/steps0x29a/islazy/term"
+	"github.com/steps0x29a/alohomora/term"
 )
 
 // CleanupCharset removes duplicate runes from a given charset.

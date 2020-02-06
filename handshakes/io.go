@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/steps0x29a/islazy/term"
+	"github.com/steps0x29a/alohomora/term"
 )
 
 // Handshake bundles everything we need to know about a handshake

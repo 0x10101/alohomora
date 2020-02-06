@@ -7,7 +7,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/steps0x29a/islazy/term"
+	"github.com/steps0x29a/alohomora/term"
 )
 
 // The Report type wraps everything that the server can

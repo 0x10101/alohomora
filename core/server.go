@@ -20,10 +20,10 @@ import (
 
 	uuid "github.com/satori/go.uuid"
 
+	"github.com/steps0x29a/alohomora/bigint"
+	"github.com/steps0x29a/alohomora/bytes"
 	"github.com/steps0x29a/alohomora/opts"
-	"github.com/steps0x29a/islazy/bigint"
-	"github.com/steps0x29a/islazy/bytes"
-	"github.com/steps0x29a/islazy/term"
+	"github.com/steps0x29a/alohomora/term"
 )
 
 // A Server manages clients and jobs.

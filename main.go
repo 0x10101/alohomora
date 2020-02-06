@@ -9,7 +9,7 @@ import (
 	"github.com/steps0x29a/alohomora/core"
 	"github.com/steps0x29a/alohomora/ext"
 	"github.com/steps0x29a/alohomora/opts"
-	"github.com/steps0x29a/islazy/term"
+	"github.com/steps0x29a/alohomora/term"
 )
 
 /*func homeLink(w http.ResponseWriter, r *http.Request) {

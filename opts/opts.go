@@ -6,7 +6,7 @@ import (
 	"math/big"
 	"os"
 
-	"github.com/steps0x29a/islazy/bigint"
+	"github.com/steps0x29a/alohomora/bigint"
 )
 
 //The Options type wraps all command line options in a neat struct for easier handling.

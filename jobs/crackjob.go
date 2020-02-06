@@ -8,7 +8,7 @@ import (
 	"time"
 
 	uuid "github.com/satori/go.uuid"
-	"github.com/steps0x29a/islazy/bigint"
+	"github.com/steps0x29a/alohomora/bigint"
 )
 
 // A CrackJob is something the server sends to a client in order for that

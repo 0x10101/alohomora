@@ -9,14 +9,14 @@ import (
 	"os"
 	"time"
 
+	"github.com/steps0x29a/alohomora/bigint"
+	"github.com/steps0x29a/alohomora/bytes"
 	"github.com/steps0x29a/alohomora/ext"
+	"github.com/steps0x29a/alohomora/fio"
 	"github.com/steps0x29a/alohomora/gen"
 	"github.com/steps0x29a/alohomora/jobs"
 	"github.com/steps0x29a/alohomora/msg"
-	"github.com/steps0x29a/islazy/bigint"
-	"github.com/steps0x29a/islazy/bytes"
-	"github.com/steps0x29a/islazy/fio"
-	"github.com/steps0x29a/islazy/term"
+	"github.com/steps0x29a/alohomora/term"
 
 	"github.com/steps0x29a/alohomora/opts"
 

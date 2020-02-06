@@ -4,7 +4,7 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/steps0x29a/islazy/bigint"
+	"github.com/steps0x29a/alohomora/bigint"
 )
 
 const (
