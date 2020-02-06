@@ -45,6 +45,8 @@ There's so much to do...
  * Write more tests
  * Write useful documentation (!)
  * Make an awesome logo (anyone?)
+ * Improve REST interface
+ * Make an awesome web interface for it
 
 # Version history
 
