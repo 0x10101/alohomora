@@ -56,9 +56,6 @@ func report(server *core.Server, jsonFile, xmlFile string) {
 
 func main() {
 
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-
 	if !term.Supported() {
 		term.NoColors()
 	}
@@ -86,6 +83,9 @@ func main() {
 			term.Error("Unable to start server: %s\n", err)
 			os.Exit(1)
 		}
+
+		sigs := make(chan os.Signal, 1)
+		signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
 		go func() {
 			<-sigs
