@@ -11,23 +11,24 @@ import (
 
 //The Options type wraps all command line options in a neat struct for easier handling.
 type Options struct {
-	Server           bool
-	Port             uint
-	Host             string
-	Verbose          bool
-	Unfancy          bool
-	Charset          string
-	Jobsize          string
-	Passlen          uint
-	Offset           string
-	Target           string
-	Timeout          uint64
-	ReportXMLTarget  string
-	ReportJSONTarget string
-	QueueSize        uint64
-	MaxJobs          string
-	MaxTime          uint64
-	EnableREST       bool
+	Server             bool
+	Port               uint
+	Host               string
+	Verbose            bool
+	Unfancy            bool
+	Charset            string
+	Jobsize            string
+	Passlen            uint
+	Offset             string
+	Target             string
+	Timeout            uint64
+	ReportXMLTarget    string
+	ReportJSONTarget   string
+	QueueSize          uint64
+	MaxJobs            string
+	MaxTime            uint64
+	EnableREST         bool
+	ConnectionAttempts uint
 }
 
 const (
@@ -101,9 +102,13 @@ const (
 	maxJobsFlagHelp    = "Maximum amount of jobs to dispatch to clients for current handshake. Defaults to 0 (disabled)."
 
 	maxTimeFlag        = "maxtime"
-	maxTimeFlagShort   = "a"
 	maxTimeFlagDefault = 0
 	maxTimeFlagHelp    = "Amount of seconds before the server considers the current handshake as a failure. Defaults to 0 (disabled)."
+
+	attemptsFlag        = "attempts"
+	attemptsFlagShort   = "a"
+	attemptsFlagDefault = 5
+	attemptsFlagHelp    = "Number of connection attempts to a server (default is 5)."
 )
 
 // Parse parses all command line parameters provided and encapsulates them in an
@@ -151,12 +156,14 @@ func Parse() (*Options, error) {
 	flag.StringVar(&args.MaxJobs, maxJobsFlagShort, maxJobsFlagDefault, maxJobsFlagHelp)
 
 	flag.Uint64Var(&args.MaxTime, maxTimeFlag, maxTimeFlagDefault, maxTimeFlagHelp)
-	flag.Uint64Var(&args.MaxTime, maxTimeFlagShort, maxTimeFlagDefault, maxTimeFlagHelp)
 
 	flag.StringVar(&args.ReportXMLTarget, "oX", "", "If provided, an XML report will be generated")
 	flag.StringVar(&args.ReportJSONTarget, "oJ", "", "If provided, a JSON report will be generated")
 
 	flag.BoolVar(&args.EnableREST, "rest", false, "If set, a REST server is started on port 29100")
+
+	flag.UintVar(&args.ConnectionAttempts, attemptsFlag, attemptsFlagDefault, attemptsFlagHelp)
+	flag.UintVar(&args.ConnectionAttempts, attemptsFlagShort, attemptsFlagDefault, attemptsFlagHelp)
 
 	flag.Parse()
 

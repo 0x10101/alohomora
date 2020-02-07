@@ -3,10 +3,12 @@ package main
 import (
 	"encoding/json"
 	"encoding/xml"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/steps0x29a/alohomora/core"
 	"github.com/steps0x29a/alohomora/ext"
@@ -104,12 +106,30 @@ func main() {
 			os.Exit(1)
 		}
 
-		client, err := core.Connect(opts)
-		if err != nil {
-			term.Error("Unable to start client: %s\n", err)
-			os.Exit(1)
+		var tries uint = 0
+		var started bool = false
+		for {
+
+			client, err := core.Connect(opts)
+			if err != nil {
+				term.Warn("Could not connect to %s:%d, will try again in %d seconds (%d of %d)\n", opts.Host, opts.Port, 10, tries+1, opts.ConnectionAttempts)
+				tries++
+				if tries < opts.ConnectionAttempts {
+					time.Sleep(10 * time.Second)
+					continue
+				} else {
+					break
+				}
+			} else {
+				started = true
+				<-client.Terminated
+			}
 		}
 
-		<-client.Terminated
+		if !started {
+			fmt.Println()
+			term.Error("Unable to connect to %s:%d, make sure %s is listening there and try again\n", opts.Host, opts.Port, core.Project)
+		}
+
 	}
 }
