@@ -559,10 +559,13 @@ func (server *Server) taskTimeoutReached() bool {
 	return server.taskTimeout > 0 && time.Now().Sub(server.started).Seconds() > float64(server.taskTimeout)
 }
 
+// SlashRoot is the root endpoint of the REST API (Server implements the RESTHandler interface).
 func (server *Server) SlashRoot(res http.ResponseWriter, req *http.Request) {
 	fmt.Fprintf(res, "Hi there, this is alohomora!")
 }
 
+// ClientsHandleFunc wraps all connected clients in ClientInfo objects and marshals that
+// information to JSON. Server implements RESTHandler interface.
 func (server *Server) ClientsHandleFunc(res http.ResponseWriter, req *http.Request) {
 	clients := make([]*ClientInfo, 0)
 	for client, connected := range server.Clients {
@@ -579,6 +582,8 @@ func (server *Server) ClientsHandleFunc(res http.ResponseWriter, req *http.Reque
 	}
 }
 
+// PendingJobsHandleFunc wraps all pending jobs in JobInfo objects and marshals that info to JSON.
+// Server implements RESTHandler interface.
 func (server *Server) PendingJobsHandleFunc(res http.ResponseWriter, req *http.Request) {
 	mapping := make(map[string]*jobs.CrackJobInfo)
 	for client, job := range server.Pending {

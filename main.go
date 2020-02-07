@@ -5,6 +5,8 @@ import (
 	"encoding/xml"
 	"io/ioutil"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/steps0x29a/alohomora/core"
 	"github.com/steps0x29a/alohomora/ext"
@@ -22,7 +24,40 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8080", router))
 }*/
 
+func report(server *core.Server, jsonFile, xmlFile string) {
+	report := server.Report()
+
+	if xmlFile != "" {
+		xmlBytes, err := xml.MarshalIndent(report, "", "  ")
+		if err != nil {
+			term.Error("Unable to save XML report: %s\n", err)
+		} else {
+			err = ioutil.WriteFile(xmlFile, xmlBytes, 0640)
+			if err != nil {
+				term.Error("Unable to save XML report: %s\n", err)
+			}
+		}
+	}
+
+	if jsonFile != "" {
+		jsonBytes, err := json.MarshalIndent(report, "", " ")
+		if err != nil {
+			term.Error("Unable to save JSON report: %s\n", err)
+		} else {
+			err = ioutil.WriteFile(jsonFile, jsonBytes, 0640)
+			if err != nil {
+				term.Error("Unable to save JSON report: %s\n", err)
+			}
+		}
+	}
+
+	report.Print()
+}
+
 func main() {
+
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
 	if !term.Supported() {
 		term.NoColors()
@@ -46,41 +81,20 @@ func main() {
 	if opts.Server {
 
 		server, err := core.Serve(opts)
+
 		if err != nil {
 			term.Error("Unable to start server: %s\n", err)
 			os.Exit(1)
 		}
 
+		go func() {
+			<-sigs
+			server.Terminate()
+		}()
+
 		<-server.Terminated
 		server.KickAll()
-
-		report := server.Report()
-
-		if opts.ReportXMLTarget != "" {
-			xmlBytes, err := xml.MarshalIndent(report, "", "  ")
-			if err != nil {
-				term.Error("Unable to save XML report: %s\n", err)
-			} else {
-				err = ioutil.WriteFile(opts.ReportXMLTarget, xmlBytes, 0640)
-				if err != nil {
-					term.Error("Unable to save XML report: %s\n", err)
-				}
-			}
-		}
-
-		if opts.ReportJSONTarget != "" {
-			jsonBytes, err := json.MarshalIndent(report, "", " ")
-			if err != nil {
-				term.Error("Unable to save JSON report: %s\n", err)
-			} else {
-				err = ioutil.WriteFile(opts.ReportJSONTarget, jsonBytes, 0640)
-				if err != nil {
-					term.Error("Unable to save JSON report: %s\n", err)
-				}
-			}
-		}
-
-		report.Print()
+		report(server, opts.ReportJSONTarget, opts.ReportXMLTarget)
 
 	} else {
 

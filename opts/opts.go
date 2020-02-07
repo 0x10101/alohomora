@@ -144,9 +144,6 @@ func Parse() (*Options, error) {
 	flag.Uint64Var(&args.Timeout, timeoutFlag, timeoutFlagDefault, timeoutFlagHelp)
 	flag.Uint64Var(&args.Timeout, timeoutFlagShort, timeoutFlagDefault, timeoutFlagHelp)
 
-	//flag.StringVar(&args.ReportFile, reportFlag, reportFlagDefault, reportFlagHelp)
-	//flag.StringVar(&args.ReportFile, reportFlagShort, reportFlagDefault, reportFlagHelp)
-
 	flag.Uint64Var(&args.QueueSize, queueSizeFlag, queueSizeFlagDefault, queueSizeFlagHelp)
 	flag.Uint64Var(&args.QueueSize, queueSizeFlagShort, queueSizeFlagDefault, queueSizeFlagHelp)
 
@@ -197,16 +194,17 @@ func (opts Options) validate() error {
 			return errors.New("Target .pcap file must exist")
 		}
 
-	}
+	} else {
 
-	// Everything else is a client
-	if len(opts.Host) == 0 || opts.Host == "0.0.0.0" {
-		return errors.New("A server's IP address or hostname is required")
-	}
+		// Everything else is a client
+		if len(opts.Host) == 0 || opts.Host == "0.0.0.0" {
+			return errors.New("A server's IP address or hostname is required")
+		}
 
-	//65535
-	if opts.Port < 0 || opts.Port > 65535 {
-		return errors.New("A valid port number is required")
+		//65535
+		if opts.Port < 0 || opts.Port > 65535 {
+			return errors.New("A valid port number is required")
+		}
 	}
 
 	return nil

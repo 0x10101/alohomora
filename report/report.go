@@ -69,10 +69,11 @@ func (report *Report) Print() {
 		fmt.Printf("%s\n", term.Bold(term.BrightGreen("YES")))
 		fmt.Printf("%s\t\t%s\n", fmtHeader("Username:"), term.Bold(term.BrightGreen(report.AccessData.Username)))
 		fmt.Printf("%s\t\t%s\n", fmtHeader("Password:"), term.Bold(term.BrightGreen(report.AccessData.Password)))
+		reportLine("Winner client:", fmt.Sprintf("%s (%s)", report.SuccessClientID, report.SuccessClientAddress))
 	} else {
-		fmt.Printf("%s\n", term.BgRed(term.White(term.Bold("NO"))))
+		fmt.Printf("%s\n", term.Bold(term.BrightRed("NO")))
 	}
-	reportLine("Winner client:", fmt.Sprintf("%s (%s)", report.SuccessClientID, report.SuccessClientAddress))
+
 }
 
 // New initializes a new empty report instance

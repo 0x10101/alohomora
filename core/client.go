@@ -41,6 +41,7 @@ type Client struct {
 	tried      *big.Int
 }
 
+// ClientInfo wraps information on a client for reporting.
 type ClientInfo struct {
 	ID        string   `json:"id"`
 	Address   string   `json:"address"`
@@ -50,6 +51,7 @@ type ClientInfo struct {
 	Tried     *big.Int `json:"tried"`
 }
 
+// Info creates a ClientInfo instance from a Client pointer and returns it.
 func (client *Client) Info() *ClientInfo {
 	info := &ClientInfo{
 		ID:        client.ShortID(),

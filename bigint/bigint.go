@@ -10,10 +10,15 @@ func dummyF() *big.Float {
 	return big.NewFloat(0.0)
 }
 
+// LessThan determines whether or not big.Int a is less than big.Int b.
+// Returns true if a is smaller than b.
 func LessThan(a, b *big.Int) bool {
 	return a.Cmp(b) < 0
 }
 
+// LTE determines whether or not big.Int a is less than or equal to
+// big.Int b.
+// Returns true if a is less than or smaller than b.
 func LTE(a, b *big.Int) bool {
 	return LessThan(a, b) || SameAs(a, b)
 }
