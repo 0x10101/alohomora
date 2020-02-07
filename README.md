@@ -1,5 +1,18 @@
+<h1 align="center">
+  	alohomora
+</h1>
+
+<p align="center">
+    <img alt="AppVeyor" src="https://img.shields.io/appveyor/ci/steps0x29a/alohomora?style=plastic">
+    <img alt="GitHub issues" src="https://img.shields.io/github/issues/steps0x29a/alohomora?style=plastic">
+    <img alt="GitHub tag (latest by date)" src="https://img.shields.io/github/v/tag/steps0x29a/alohomora?style=plastic">    
+    <img alt="GitHub" src="https://img.shields.io/github/license/steps0x29a/alohomora?style=plastic">
+    <img alt="Contributions" src="https://img.shields.io/badge/contributions-welcome-brightgreen?style=plastic">
+</p>
+
 # alohomora
 alohomora is a distributed cracking utility. A server provides cracking jobs to all clients connected to it. The clients do the actual heavy lifting and report back to the server.
+
 
 ## Why?
 Because I wanted to learn Go and to see whether a distributed cracking utility was possible. Turns out it is!
