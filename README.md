@@ -56,7 +56,15 @@ Or simply download a release and run it:
     ./alohomora-0.4 --help
 
 # Compatibility
+alohomora is designed to work in Linux-based systems. You can run it inside the Ubuntu Terminal for Windows, though, it works just fine.
+Make sure that you install `aircrack-ng` on the system where you want to run the client:
+
+    sudo apt install aircrack-ng
+    
+<p align="center"><sub>(use whatever package manager your system uses)</sub></p>
+
 alohomora currently only works on Linux-based systems, as I have not yet found the time to make it run on Windows. But I guess that's fine. The server should run on Windows machines, as it does not require `aircrack-ng` to be available.
+You can run alohomora in the Ubuntu Terminal available for Windows. It works just fine there.
 
 # Legal disclaimer
 As you might have guessed, cracking WPA2 passphrases might be illegal. Do not use alohomora on handshakes that you don't have the permission to crack! I will not be held responsible for anything illegal you do with this tool!
