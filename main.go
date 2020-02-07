@@ -72,7 +72,7 @@ func main() {
 	}
 
 	if opts.Verbose {
-		core.Banner()
+		core.Banner(opts.Server)
 	}
 
 	if opts.Server {

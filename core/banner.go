@@ -38,6 +38,10 @@ func LegacyBanner() {
 }
 
 // Banner prints a smaller, more likeable banner
-func Banner() {
-	fmt.Printf("%s v%s %s\n\n", Project, Version, term.Dim(fmt.Sprintf("[by %s]", Author)))
+func Banner(server bool) {
+	var mode string = term.BrightCyan("client")
+	if server {
+		mode = term.BrightMagenta("server")
+	}
+	fmt.Printf("%s v%s %s - running in %s mode\n\n", Project, Version, term.Dim(fmt.Sprintf("[by %s]", Author)), mode)
 }

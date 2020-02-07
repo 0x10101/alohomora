@@ -161,6 +161,10 @@ func BrightMagenta(value string) string {
 	return Magenta(Bold(value))
 }
 
+func BrightCyan(value string) string {
+	return Cyan(Bold(value))
+}
+
 func BrightYellow(value string) string {
 	return Yellow(Bold(value))
 }
