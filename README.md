@@ -13,6 +13,10 @@
 # alohomora
 alohomora is a distributed cracking utility. A server provides cracking jobs to all clients connected to it. The clients do the actual heavy lifting and report back to the server.
 
+<p align="center">
+  <img alt="alohomora" src="./.github/screenshot-2.png">
+  <b>alohomora running with an example handshake</b><br>
+</p>
 
 ## Why?
 Because I wanted to learn Go and to see whether a distributed cracking utility was possible. Turns out it is!
