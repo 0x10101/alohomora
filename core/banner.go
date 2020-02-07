@@ -2,9 +2,14 @@ package core
 
 import (
 	"fmt"
+
+	"github.com/steps0x29a/alohomora/term"
 )
 
 const (
+	// Project is the actual project name
+	Project string = "alohomora"
+
 	// Version determines the current version of alohomora
 	Version string = "0.4"
 
@@ -18,8 +23,8 @@ const (
 	Website string = "https://github.com/steps0x29a/alohomora"
 )
 
-// Banner prints a fancy banner.
-func Banner() {
+// LegacyBanner prints a fancy banner.
+func LegacyBanner() {
 	fmt.Println("")
 	fmt.Println("    █████╗ ██╗      ██████╗ ██╗  ██╗ ██████╗ ███╗   ███╗ ██████╗ ██████╗  █████╗ ")
 	fmt.Println("   ██╔══██╗██║     ██╔═══██╗██║  ██║██╔═══██╗████╗ ████║██╔═══██╗██╔══██╗██╔══██╗")
@@ -30,4 +35,9 @@ func Banner() {
 	fmt.Printf("                                    v%s                                          \n", Version)
 	//fmt.Println("\n                          Made with 🖤 by steps0x29a                          ")
 	fmt.Println()
+}
+
+// Banner prints a smaller, more likeable banner
+func Banner() {
+	fmt.Printf("%s v%s %s\n\n", Project, Version, term.Dim(fmt.Sprintf("[by %s]", Author)))
 }

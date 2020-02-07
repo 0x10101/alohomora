@@ -161,6 +161,38 @@ func BrightMagenta(value string) string {
 	return Magenta(Bold(value))
 }
 
+func BrightYellow(value string) string {
+	return Yellow(Bold(value))
+}
+
+func Dim(value string) string {
+	return wrap(AnsiDim, value)
+}
+
+func DimBlue(value string) string {
+	return Dim(Blue(value))
+}
+
+func DimGreen(value string) string {
+	return Dim(Green(value))
+}
+
+func DimYellow(value string) string {
+	return Dim(Yellow(value))
+}
+
+func DimMagenta(value string) string {
+	return Dim(Magenta(value))
+}
+
+func DimRed(value string) string {
+	return Dim(Red(value))
+}
+
+func DimCyan(value string) string {
+	return Dim(Cyan(value))
+}
+
 func Supported() bool {
 	if term := os.Getenv("TERM"); term == "" {
 		return false
