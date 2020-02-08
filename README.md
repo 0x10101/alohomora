@@ -8,6 +8,7 @@
     <img alt="GitHub tag (latest by date)" src="https://img.shields.io/github/v/tag/steps0x29a/alohomora?style=plastic">    
     <img alt="GitHub" src="https://img.shields.io/github/license/steps0x29a/alohomora?style=plastic">
     <img alt="Contributions" src="https://img.shields.io/badge/contributions-welcome-brightgreen?style=plastic">
+  <a href="https://goreportcard.com/report/github.com/steps0x29a/alohomora"><img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/steps0x29a/alohomora?style=plastic&fuckgithubcache=1"></a>
 </p>
 
 # alohomora
