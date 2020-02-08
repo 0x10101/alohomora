@@ -19,22 +19,25 @@ alohomora is a distributed cracking utility. A server provides cracking jobs to 
 </p>
 
 ## Why?
-Because I wanted to learn Go and to see whether a distributed cracking utility was possible. Turns out it is!
+Because I wanted to learn [Go](https://golang.org "Go's website") and to see whether a distributed cracking utility like this was possible. Turns out it is!
 
 # Current version
-Current version is 0.4, which is the first version I feel comfortable making public. It's far from perfect, I know that. alohomora is provided as-is, no warranty of any kind!
+Current version is 0.4, which is the first version I feel comfortable making public. It's far from perfect, I know that. But it actually works.
+The current feature set includes:
+
+ * Cracking WPA2 handshakes in a distributed way
+ * Limited reporting (stdout, XML, JSON)
+ * Very limited REST interface
 
 # History
-Initially, alohomora was meant to only crack WPA2 handshakes using aircrack-ng and a bruteforce approach. But while I was developing it, it dawned on me that it could also be used to crack hashes, encrypted files and much more, so this is planned for future versions of it.
+Initially, alohomora was meant to only crack WPA2 handshakes using [aircrack-ng](https://github.com/aircrack-ng/aircrack-ng) with a bruteforce approach. But while I was developing it, it dawned on me that it could also be used to crack hashes, encrypted files and much more, so this is planned for future versions of it.
 
 # How does it work?
-Let's say you have obtained a WPA2 handshake. You then start alohomora in server mode, providing it with the handshake PCAP file as well as the parameters for cracking the passphrase, i.e. the charset to bruteforce:
+Let's say you have [obtained a WPA2 handshake](https://github.com/bettercap/bettercap). You then start an alohomora server tasked with this particular handshake (just give it the handshake file). Adjust character set and password length to your needs and run it:
 
     ./alohomora -server -verbose -ip <your ip> -port <port> -charset abcdefghijklmnopqrstuvwxyz -length 8 -target <path to pcap file>
 
-This will start the server, listening for connections to your IP address. Omitting the ip parameter will make it listen on localhost. 
-
-The PCAP file is parsed by alohomora. It tries to find both the ESSID and BSSID in it to pass them to the clients.
+This will start the server, listening for connections to your IP address. Omitting the ip parameter will make it listen on 0.0.0.0. 
 
     ./alohomora -server -verbose -ip 127.0.0.1 -port 6666 -charset abcdefghijklmnopqrstuvwxyz -length 8 -target <path to pcap file>
 
@@ -57,18 +60,20 @@ Clone the repository, then run it:
     
 Or simply download a release and run it:
 
-    ./alohomora-0.4 --help
+    ./alohomora --help
 
-# Compatibility
-alohomora is designed to work in Linux-based systems. You can run it inside the Ubuntu Terminal for Windows, though, it works just fine.
-Make sure that you install `aircrack-ng` on the system where you want to run the client:
+alohomora clients require `aircrack-ng` to crack handshakes. If aircrack-ng is in your PATH, everything should work out of the box. If not, you can set the `AIRCRACK` environment variable (set it to the full path of `aircrack-ng`). 
+
+    export AIRCRACK=/path/to/aircrack-ng/executable
+
+To install `aircrack-ng`, run
 
     sudo apt install aircrack-ng
     
-<p align="center"><sub>(use whatever package manager your system uses)</sub></p>
+<p><sub>(or use whatever package manager your system uses)</sub></p>
 
-alohomora currently only works on Linux-based systems, as I have not yet found the time to make it run on Windows. But I guess that's fine. The server should run on Windows machines, as it does not require `aircrack-ng` to be available.
-You can run alohomora in the Ubuntu Terminal available for Windows. It works just fine there.
+# Compatibility
+`alohomora` is designed to work on Linux-based systems. You can run it inside [WSL](https://docs.microsoft.com/en-us/windows/wsl/about) on Windows, though, it works just fine. I recommend getting the new [Windows Terminal Preview](https://github.com/microsoft/terminal) if you want to run `alohomora` in WSL.
 
 # Legal disclaimer
 As you might have guessed, **cracking WPA2 passphrases might be illegal**. Do not use alohomora on handshakes that you don't have the permission to crack! I will not be held responsible for anything illegal you do with this tool!
