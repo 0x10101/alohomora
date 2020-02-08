@@ -31,7 +31,6 @@ func getAircrackExecutable() (string, error) {
 		return value, nil
 	}
 
-	//term.Warn("%s not set, assuming %s in $PATH\n", term.BrightBlue(aircrackExecutableKey), term.BrightMagenta("aircrack-ng"))
 	exe, err := exec.LookPath("aircrack-ng")
 	if err != nil {
 		return "", err

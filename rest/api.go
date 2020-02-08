@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -8,14 +9,19 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type RestAPI struct {
+// API wraps required information on the REST API in a convenient struct type
+type API struct {
 	router  *mux.Router
 	address string
 	port    uint16
 }
 
-func NewRestAPI(handler RestHandler, address string, port uint16) *RestAPI {
-	api := new(RestAPI)
+// NewAPI creates a new RestAPI object
+func NewAPI(handler APIHandler, address string, port uint16) (*API, error) {
+	if handler == nil {
+		return nil, errors.New("An API handler is required")
+	}
+	api := new(API)
 	api.address = address
 	api.port = port
 	api.router = mux.NewRouter().StrictSlash(true)
@@ -23,9 +29,10 @@ func NewRestAPI(handler RestHandler, address string, port uint16) *RestAPI {
 	api.router.HandleFunc("/clients", handler.ClientsHandleFunc)
 	api.router.HandleFunc("/jobs", handler.PendingJobsHandleFunc)
 
-	return api
+	return api, nil
 }
 
-func (api *RestAPI) Serve() {
+// Serve starts the REST API
+func (api *API) Serve() {
 	log.Fatal(http.ListenAndServe(fmt.Sprintf("%s:%d", api.address, api.port), api.router))
 }

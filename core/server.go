@@ -636,8 +636,12 @@ func Serve(opts *opts.Options) (*Server, error) {
 
 	if opts.EnableREST {
 		term.Info("Enabling REST server on 127.0.0.1:29100\n")
-		api := rest.NewRestAPI(server, "127.0.0.1", 29100)
-		go api.Serve()
+		api, err := rest.NewAPI(server, "127.0.0.1", 29100)
+		if err != nil {
+			term.Warn("Unable to start REST API: %s\n", err)
+		} else {
+			go api.Serve()
+		}
 	}
 	//go server.serveREST()
 
