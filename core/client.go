@@ -14,6 +14,7 @@ import (
 	"github.com/steps0x29a/alohomora/ext"
 	"github.com/steps0x29a/alohomora/fio"
 	"github.com/steps0x29a/alohomora/gen"
+	"github.com/steps0x29a/alohomora/handshakes"
 	"github.com/steps0x29a/alohomora/jobs"
 	"github.com/steps0x29a/alohomora/msg"
 	"github.com/steps0x29a/alohomora/term"
@@ -30,15 +31,16 @@ const (
 // A Client is basically a socket connection with some
 // additional info.
 type Client struct {
-	Socket     net.Conn
-	ID         uuid.UUID
-	Terminated chan bool
-	Errors     chan error
-	validated  chan bool
-	connected  time.Time
-	assigned   uint64
-	finished   uint64
-	tried      *big.Int
+	Socket            net.Conn
+	ID                uuid.UUID
+	Terminated        chan bool
+	Errors            chan error
+	validated         chan bool
+	connected         time.Time
+	assigned          uint64
+	finished          uint64
+	tried             *big.Int
+	handshakeFilepath string
 }
 
 // ClientInfo wraps information on a client for reporting.
@@ -149,38 +151,55 @@ func writeTmpBinFile(data []byte) (string, error) {
 
 }
 
-func (client *Client) work(job *jobs.CrackJob) ([]byte, error) {
+func (client *Client) work(job *jobs.CrackJob) ([]byte, bool, error) {
 
 	// Decode crackjob' payload
 	if job.Type == jobs.WPA2 {
 		term.Info("Working on %s (%s)...\n", term.BrightBlue(job.ID.String()[:8]), term.Cyan("WPA2"))
 
+		var handshake = handshakes.NewHandshake()
+
+		if job.Payload != nil {
+			term.Info("Payload data present, assuming new or unknown target\n")
+			// Assume WPA2 payload, decode and save
+			payload, err := job.DecodeWPA2()
+			if err != nil {
+				return nil, false, err
+			}
+
+			client.handshakeFilepath, err = writeTmpBinFile(payload.Data)
+			if err != nil {
+				return nil, false, err
+			}
+
+			err = handshake.Read(client.handshakeFilepath)
+			if err != nil {
+				return nil, false, err
+			}
+		} else {
+			// Re-read the payload from file
+			term.Info("No payload data, assuming same target as previous job\n")
+			err := handshake.Read(client.handshakeFilepath)
+			if err != nil {
+				return nil, false, err
+			}
+
+		}
+
 		// Generate passwords
 		pwFilepath, err := generatePasswords(job.Gen)
 		if err != nil {
-			return nil, err
+			return nil, false, err
 		}
 
 		defer os.Remove(pwFilepath)
-
-		// WPA2 payload
-		payload, err := job.DecodeWPA2()
-		if err != nil {
-			return nil, err
-		}
-
-		handshakeFilepath, err := writeTmpBinFile(payload.Data)
-		if err != nil {
-			return nil, err
-		}
-
-		defer os.Remove(handshakeFilepath)
+		//defer os.Remove(handshakeFilepath)
 
 		term.Info("Running aircrack-ng...")
-		output, err := ext.Aircrack(payload.BSSID, payload.ESSID, pwFilepath, handshakeFilepath)
+		output, err := ext.Aircrack(handshake.BSSID, handshake.ESSID, pwFilepath, client.handshakeFilepath)
 		if err != nil {
 			fmt.Printf("%s\n", term.BrightRed("ERROR"))
-			return nil, err
+			return nil, false, err
 		}
 		fmt.Printf("%s\n", term.BrightGreen("OK"))
 
@@ -194,11 +213,12 @@ func (client *Client) work(job *jobs.CrackJob) ([]byte, error) {
 		fmt.Println()
 		result := &jobs.CrackJobResult{Payload: password, JobID: job.ID, Success: found}
 
-		return result.Encode()
+		enc, err := result.Encode()
+		return enc, found, err
 	}
 
 	term.Warn("Only WPA2 jobs are implemented as of now\n")
-	return nil, errors.New("Not a WPA2 payload")
+	return nil, false, errors.New("Not a WPA2 payload")
 }
 
 func (client *Client) handle(message *msg.Message) {
@@ -230,7 +250,7 @@ func (client *Client) handle(message *msg.Message) {
 
 			term.Info("Received a new task: %s\n", term.BrightBlue(job.ID.String()[:8]))
 
-			result, err := client.work(job)
+			result, success, err := client.work(job)
 			if err != nil {
 				term.Error("Failed to attempt cracking: %s\n", err)
 				result := jobs.CrackJobResult{JobID: job.ID, Payload: "", Success: false}
@@ -246,6 +266,9 @@ func (client *Client) handle(message *msg.Message) {
 			}
 			answer := msg.NewMessage(msg.Finished, result)
 			client.send(answer)
+			if success {
+				client.Terminated <- true
+			}
 			break
 		}
 	}
@@ -307,6 +330,12 @@ func (client *Client) send(message *msg.Message) {
 		client.Errors <- err
 		return
 	}
+}
+
+// Shutdown cleans up the client's temp file(s)
+func (client *Client) Shutdown() {
+	// Delete payload file
+	defer os.Remove(client.handshakeFilepath)
 }
 
 // Connect tries to establish a connection to a server.

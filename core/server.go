@@ -207,7 +207,6 @@ func (server *Server) onClientHello(client *Client, message *msg.Message) {
 func (server *Server) onClientIdle(client *Client, message *msg.Message) {
 	if !server.Clients[client] {
 		// Invalid
-		term.Warn("Client not validated: %s\n", client)
 		term.Warn("Closing connection to %s\n", client)
 		server.kick(client)
 	} else {
@@ -385,7 +384,17 @@ func (server *Server) dispatch() {
 		default:
 			{
 				// Server not yet terminated, dispatch jobs
+
+				client, _ := <-server.freeClients
+
 				job, _ := <-server.Queue
+				tmp := job.Payload
+				if client.finished > 0 {
+					// Assume client already knows the handshake
+					term.Info("Known client, dropping payload\n")
+
+					job.Payload = nil
+				}
 
 				payload, err := job.Encode()
 				if err != nil {
@@ -394,11 +403,12 @@ func (server *Server) dispatch() {
 					return
 				}
 
-				client, _ := <-server.freeClients
+				job.Payload = tmp
 
 				job.Started = time.Now()
 				server.Lock()
 				server.Pending[client] = job
+
 				message := msg.NewMessage(msg.Task, payload)
 				server.Unlock()
 				if server.verbose {

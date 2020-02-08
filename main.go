@@ -123,6 +123,8 @@ func main() {
 			} else {
 				started = true
 				<-client.Terminated
+				client.Shutdown()
+				break
 			}
 		}
 

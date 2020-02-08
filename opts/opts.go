@@ -86,11 +86,6 @@ const (
 	timeoutFlagDefault = 600
 	timeoutFlagHelp    = "Amount of seconds before a crack job times out and is considered lost (job will be rescheduled). Defaults to 600 (10 minutes)."
 
-	/*reportFlag        = "report"
-	reportFlagShort   = "r"
-	reportFlagDefault = "alohomora.txt"
-	reportFlagHelp    = "Path to a file where alohomora writes its results to. Defaults to 'alohomora.txt'"*/
-
 	queueSizeFlag        = "queuesize"
 	queueSizeFlagShort   = "q"
 	queueSizeFlagDefault = 50
