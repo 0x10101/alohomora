@@ -71,14 +71,14 @@ alohomora currently only works on Linux-based systems, as I have not yet found t
 You can run alohomora in the Ubuntu Terminal available for Windows. It works just fine there.
 
 # Legal disclaimer
-As you might have guessed, cracking WPA2 passphrases might be illegal. Do not use alohomora on handshakes that you don't have the permission to crack! I will not be held responsible for anything illegal you do with this tool!
+As you might have guessed, **cracking WPA2 passphrases might be illegal**. Do not use alohomora on handshakes that you don't have the permission to crack! I will not be held responsible for anything illegal you do with this tool!
 Also, use alohomora at your own risk! I will not be held responsible for any damage caused by it.
 
 # Roadmap
 
 There's so much to do...
 
- * Improve traffic use by omitting handshakes when talking to known clients
+ * ~~Improve traffic use by omitting handshakes when talking to known clients~~
  * Add capabilities for cracking hashes
  * Add capabilities for cracking archive passwords
  * Improve reporting capabilities
