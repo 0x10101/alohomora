@@ -31,7 +31,7 @@ func GeneratePassword(charset []rune, length int64, shift *big.Int) (string, err
 	}
 
 	// Empty out the buffer
-	var i int64 = 0
+	var i int64
 	for i = 0; i < length; i++ {
 		buffer[i] = emptyRune
 	}
