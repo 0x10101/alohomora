@@ -62,6 +62,8 @@ func main() {
 		term.NoColors()
 	}
 
+	//flag.Usage = opts.Usage
+
 	opts, err := opts.Parse()
 
 	if err != nil {
