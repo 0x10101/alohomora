@@ -2,7 +2,8 @@ package term
 
 import "bytes"
 
-func InsertAfterEvery(raw string, insert rune, interval int) string {
+// Splice inserts a given rune into a given string at a given interval and returns the modified string.
+func Splice(raw string, insert rune, interval int) string {
 	if interval <= 0 || interval >= len(raw) {
 		return raw
 	}
@@ -16,15 +17,4 @@ func InsertAfterEvery(raw string, insert rune, interval int) string {
 		}
 	}
 	return buffer.String()
-}
-
-func Reverse(raw string) string {
-	c := []rune(raw)
-	n := len(c)
-
-	for i := 0; i < n/2; i++ {
-		c[i], c[n-1-i] = c[n-1-i], c[i]
-	}
-
-	return string(c)
 }

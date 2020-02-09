@@ -23,12 +23,14 @@ func LTE(a, b *big.Int) bool {
 	return LessThan(a, b) || SameAs(a, b)
 }
 
-func GreaterThan(a, b *big.Int) bool {
+// GT determines whether or not big.Int a is greater than big.Int b.
+// Returns true if a is greater than b, false otherwise.
+func GT(a, b *big.Int) bool {
 	return a.Cmp(b) > 0
 }
 
 func GTE(a, b *big.Int) bool {
-	return GreaterThan(a, b) || SameAs(a, b)
+	return GT(a, b) || SameAs(a, b)
 }
 
 func SameAs(a, b *big.Int) bool {

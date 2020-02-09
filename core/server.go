@@ -388,11 +388,12 @@ func (server *Server) dispatch() {
 				client, _ := <-server.freeClients
 
 				job, _ := <-server.Queue
+
+				// We need the payload should this client succeed. So save it before omitting it
 				tmp := job.Payload
+
 				if client.finished > 0 {
 					// Assume client already knows the handshake
-					term.Info("Known client, dropping payload\n")
-
 					job.Payload = nil
 				}
 
@@ -403,17 +404,21 @@ func (server *Server) dispatch() {
 					return
 				}
 
+				// Give the job its payload back
 				job.Payload = tmp
 
 				job.Started = time.Now()
 				server.Lock()
 				server.Pending[client] = job
 
+				// Send job to client
 				message := msg.NewMessage(msg.Task, payload)
 				server.Unlock()
+
 				if server.verbose {
 					term.Info("Client %s %s with job %s\n", term.BrightBlue(client.ShortID()), term.BrightMagenta("tasked"), term.Cyan(job.ID.String()[:8]))
 				}
+
 				go server.send(client, message)
 				client.assigned++
 			}
@@ -429,7 +434,6 @@ func (server *Server) initCrackjobs(opts *opts.Options) {
 	if err != nil {
 		// This is bad
 		term.Error("Unable to process target: %s\n", err)
-		//server.Terminated <- true
 		server.Terminate()
 		return
 	}
@@ -458,7 +462,8 @@ func (server *Server) initCrackjobs(opts *opts.Options) {
 		return
 	}
 
-	for bigint.GreaterThan(remaining, big.NewInt(0)) {
+	// While remaining > 0
+	for bigint.GT(remaining, big.NewInt(0)) {
 
 		var runAmount *big.Int = bigint.Copy(jobsize)
 		if bigint.LessThan(remaining, jobsize) {
@@ -484,7 +489,6 @@ func (server *Server) initCrackjobs(opts *opts.Options) {
 
 		if err != nil {
 			term.Error("Unable to generate Crackjob: %s\n", err)
-			//server.Terminated <- true
 			server.Terminate()
 			return
 		}
@@ -495,7 +499,7 @@ func (server *Server) initCrackjobs(opts *opts.Options) {
 		}*/
 
 		server.Queue <- job
-		if bigint.GTE(jobindex, server.maxjobs) && bigint.GreaterThan(server.maxjobs, big.NewInt(0)) {
+		if bigint.GTE(jobindex, server.maxjobs) && bigint.GT(server.maxjobs, big.NewInt(0)) {
 			term.Info("Maximum amount of jobs reached, stopping job generation\n")
 			server.maximumJobsReached = true
 			break

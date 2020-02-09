@@ -3,10 +3,13 @@ package opts
 import (
 	"errors"
 	"flag"
+	"fmt"
 	"math/big"
 	"os"
 
+	"github.com/cheynewallace/tabby"
 	"github.com/steps0x29a/alohomora/bigint"
+	"github.com/steps0x29a/alohomora/term"
 )
 
 //The Options type wraps all command line options in a neat struct for easier handling.
@@ -32,9 +35,11 @@ type Options struct {
 }
 
 const (
+	maxWidth = 80
+
 	nodeFlag    = "server"
 	nodeDefault = false
-	nodeHelp    = "If provided, alohomora will run as a server node"
+	nodeHelp    = "If provided, alohomora will run in server mode. If not provided, it will run in client mode"
 
 	portFlag        = "port"
 	portFlagShort   = "p"
@@ -105,6 +110,91 @@ const (
 	attemptsFlagDefault = 5
 	attemptsFlagHelp    = "Number of connection attempts to a server (default is 5)."
 )
+
+/*func printOpt(short, long, help, def string) {
+	head := fmt.Sprintf("  -%s / --%s   ", short, long)
+	defP := fmt.Sprintf("(default: %s)", def)
+	//ldef := len(defP)
+	lhead := len(head)
+	lhelp := len(help)
+	fmt.Printf("%s", head)
+	if lhead+lhelp < maxWidth {
+		// Simply print
+		fmt.Printf("%s\n", help)
+	} else {
+		// Loop
+
+	}
+}*/
+
+func intro() {
+	fmt.Printf("\nUsage: ./alohomora [--server] [options]\n\n")
+}
+
+func serverIntro() {
+	fmt.Println(term.Bold("SERVER MODE USAGE"))
+	fmt.Println()
+	fmt.Println("  ./alohomora --server --target /path/to/pcap/file")
+	fmt.Println()
+	fmt.Println("  Runs alohomora server on 0.0.0.0:29100 targeting the pcap file")
+	fmt.Println("  in /path/to/pcap/file. The character set used to generate passwords")
+	fmt.Println("  will be 0123456789. Each password will be 8 characters long and each")
+	fmt.Println("  client will be tasked with 10.000 passwords per job.")
+	fmt.Println()
+	fmt.Println(term.Bold("SERVER OPTIONS"))
+	fmt.Println()
+}
+
+func Usage() {
+	/*t := tabby.New()
+	t.AddHeader("NAME", "TITLE", "DEPARTMENT")
+	t.AddLine("John Smith", "Developer", "Engineering")
+	t.Print()*/
+	intro()
+	serverIntro()
+	t := tabby.New()
+
+	t.AddLine(fmt.Sprintf("  -%s / --%s", term.Bold(serverFlagShort), term.Bold(serverFlag)), "Set the server's listen address")
+	t.AddLine("", "Default value is 0.0.0.0.")
+
+	//, fmt.Sprintf("(default: %s)", serverFlagDefault))
+	/*t.AddLine(fmt.Sprintf("  -%s / --%s", term.Bold(portFlagShort), term.Bold(portFlag)), "Set the server's listen port", fmt.Sprintf("(default: %d)", portFlagDefault))
+	t.AddLine(fmt.Sprintf("  -%s / --%s", term.Bold(charsetFlagShort), term.Bold(charsetFlag)), "Set the charset used for password generation", fmt.Sprintf("(default: %s)", charsetFlagDefault))
+	t.AddLine(fmt.Sprintf("  -%s / --%s", term.Bold(offsetFlagShort), term.Bold(offsetFlag)), "Set the password generation offset", fmt.Sprintf("(default: %s)", offsetFlagDefault))
+	t.AddLine(fmt.Sprintf("  -%s / --%s", term.Bold(timeoutFlagShort), term.Bold(timeoutFlag)), "Set the timeout for jobs in seconds", fmt.Sprintf("(default: %d)", timeoutFlagDefault))
+	t.AddLine(fmt.Sprintf("  -%s / --%s", term.Bold(queueSizeFlagShort), term.Bold(queueSizeFlag)), "Set the job generation backlog size", fmt.Sprintf("(default: %d)", queueSizeFlagDefault))
+	t.AddLine(fmt.Sprintf("  -%s / --%s", term.Bold(maxJobsFlagShort), term.Bold(maxJobsFlag)), "Set the maximum amount of jobs to generate for the task at hand", fmt.Sprintf("(default: %s)", maxJobsFlagDefault))
+	t.AddLine(fmt.Sprintf("  -%s / --%s", term.Bold("k"), term.Bold(maxTimeFlag)), "Set the maximum amount of seconds the server will be running ", fmt.Sprintf("(default: %d)", maxTimeFlagDefault))
+	*/
+	t.Print()
+
+}
+
+func Usage2() {
+	fmt.Println("")
+	fmt.Println("Usage: ./alohomora [--server] [options]")
+	fmt.Println()
+	fmt.Println(term.Bold("SERVER MODE USAGE"))
+	fmt.Println()
+	fmt.Println("  ./alohomora --server --target /path/to/pcap/file")
+	fmt.Println()
+	fmt.Println("  Runs alohomora server on 0.0.0.0:29100 targeting the pcap file")
+	fmt.Println("  in /path/to/pcap/file. The character set used to generate passwords")
+	fmt.Println("  will be 0123456789. Each password will be 8 characters long and each")
+	fmt.Println("  client will be tasked with 10.000 passwords per job.")
+	fmt.Println()
+	fmt.Println(term.Bold("SERVER OPTIONS"))
+	fmt.Println()
+	fmt.Printf("  -%s / --%s        Set the listen address   (default: %s)\n", term.Bold(serverFlagShort), term.Bold(serverFlag), serverFlagDefault)
+	fmt.Printf("  -%s / --%s      Set the listen port      (default: %d)\n", term.Bold(portFlagShort), term.Bold(portFlag), portFlagDefault)
+	fmt.Printf("  -%s / --%s   Set the character set    (default: %s)\n", term.Bold(charsetFlagShort), term.Bold(charsetFlag), charsetFlagDefault)
+	fmt.Printf("  -%s / --%s    Set the password length  (default: %d)\n", term.Bold(lengthFlagShort), term.Bold(lengthFlag), lengthFlagDefault)
+	fmt.Printf("  -%s / --%s    Set the generation offset  (default: %s)\n", term.Bold(offsetFlagShort), term.Bold(offsetFlag), offsetFlagDefault)
+	fmt.Printf("  -%s / --%s    Set the job timeout  (default: %d)\n", term.Bold(timeoutFlagShort), term.Bold(timeoutFlag), timeoutFlagDefault)
+	fmt.Printf("  -%s / --%s    Set the job backlog size  (default: %d)\n", term.Bold(queueSizeFlagShort), term.Bold(queueSizeFlag), queueSizeFlagDefault)
+	fmt.Printf("  -%s / --%s    Set the maximum amount of jobs  (default: %s)\n", term.Bold(maxJobsFlagShort), term.Bold(maxJobsFlag), maxJobsFlagDefault)
+
+}
 
 // Parse parses all command line parameters provided and encapsulates them in an
 // instance of the Options type for easier handling. That instance will be returned
