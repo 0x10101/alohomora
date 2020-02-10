@@ -17,6 +17,8 @@ type WPA2Payload struct {
 	BSSID string
 }
 
+// Encode encode a WPA2Payload object to an array of bytes.
+// The encoded bytes are returned as well as any errors.
 func (payload *WPA2Payload) Encode() ([]byte, error) {
 	buffer := new(bytes.Buffer)
 	encoder := gob.NewEncoder(buffer)

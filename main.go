@@ -109,7 +109,7 @@ func main() {
 			os.Exit(1)
 		}
 
-		var tries uint = 0
+		var tries uint
 		var started bool = false
 		for {
 

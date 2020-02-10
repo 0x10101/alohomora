@@ -1,8 +1,7 @@
 package bytes
 
-// EndsWithBytes tests whether a given []byte ends with
-// another given []byte. Returns true if the last bytes
-// in buffer equal the bytes in value
+// EndsWith tests whether a given []byte ends with another given []byte.
+// Returns true if the last bytes in buffer equal the bytes in value
 func EndsWith(buffer, value []byte) bool {
 	if len(buffer) < len(value) {
 		return false

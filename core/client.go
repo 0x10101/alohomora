@@ -111,7 +111,7 @@ func generatePasswords(params *jobs.GenerationParams) (string, error) {
 
 	term.Info("Generating %d passwords...", params.Amount)
 
-	var i int64 = 0
+	var i int64
 	for i = 0; i < params.Amount; i++ {
 		pw, err := gen.GeneratePassword(params.Charset, params.Length, bigint.Add(params.Offset, big.NewInt(i)))
 		if err != nil {

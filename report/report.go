@@ -51,6 +51,7 @@ func reportLine(header, value string) {
 	fmt.Printf("%s\t\t%s\n", fmtHeader(header), fmtValue(value))
 }
 
+// Print prints the server's report to stdout as a table.
 func (report *Report) Print() {
 	fmt.Println()
 
@@ -78,30 +79,7 @@ func (report *Report) Print() {
 		t.AddRow("Password cracked", term.Bold(term.BrightRed("NO")))
 	}
 
-	/*
-		reportLine("Server started:", report.StartTimestamp.String())
-		reportLine("Server stopped:", report.EndTimestamp.String())
-		reportLine("Charset used:", report.Charset)
-		reportLine("Offset used:", report.Offset.String())
-		reportLine("Password len:", fmt.Sprintf("%d", report.Length))
-		reportLine("Jobsize used:", report.Jobsize.String())
-		reportLine("Finished runs:", report.FinishedRuns.String())
-		reportLine("Type of job:", report.JobType)
-		reportLine("Target used:", report.Target)
-		reportLine("Overall tries:", report.PasswordsTried.String())
-		reportLine("Max clients:", fmt.Sprintf("%d", report.MaxClientsConnected))
-		fmt.Printf("%s\t\t", fmtHeader("Password found:"))
-		if report.Success {
-			fmt.Printf("%s\n", term.Bold(term.BrightGreen("YES")))
-			fmt.Printf("%s\t\t%s\n", fmtHeader("Username:"), term.Bold(term.BrightGreen(report.AccessData.Username)))
-			fmt.Printf("%s\t\t%s\n", fmtHeader("Password:"), term.Bold(term.BrightGreen(report.AccessData.Password)))
-			reportLine("Winner client:", fmt.Sprintf("%s (%s)", report.SuccessClientID, report.SuccessClientAddress))
-		} else {
-			fmt.Printf("%s\n", term.Bold(term.BrightRed("NO")))
-		}*/
-
 	fmt.Println(t)
-
 }
 
 // New initializes a new empty report instance
