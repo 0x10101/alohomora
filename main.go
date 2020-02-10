@@ -65,7 +65,7 @@ func main() {
 
 	flag.Usage = opts.Usage
 
-	opts, err := opts.Parse()
+	options, err := opts.Parse()
 	fmt.Println(term.BgRed(term.White(term.Bold("After options"))))
 
 	if err != nil {
@@ -73,17 +73,17 @@ func main() {
 		os.Exit(1)
 	}
 
-	if opts.Unfancy {
+	if options.Unfancy {
 		term.NoColors()
 	}
 
-	if opts.Verbose {
-		core.Banner(opts.Server)
+	if options.Verbose {
+		opts.Banner(options.Server, false)
 	}
 
-	if opts.Server {
+	if options.Server {
 
-		server, err := core.Serve(opts)
+		server, err := core.Serve(options)
 
 		if err != nil {
 			term.Error("Unable to start server: %s\n", err)
@@ -100,7 +100,7 @@ func main() {
 
 		<-server.Terminated
 		server.KickAll()
-		report(server, opts.ReportJSONTarget, opts.ReportXMLTarget)
+		report(server, options.ReportJSONTarget, options.ReportXMLTarget)
 
 	} else {
 
@@ -114,11 +114,11 @@ func main() {
 		var started bool = false
 		for {
 
-			client, err := core.Connect(opts)
+			client, err := core.Connect(options)
 			if err != nil {
-				term.Warn("Could not connect to %s:%d, will try again in %d seconds (%d of %d)\n", opts.Host, opts.Port, 10, tries+1, opts.ConnectionAttempts)
+				term.Warn("Could not connect to %s:%d, will try again in %d seconds (%d of %d)\n", options.Host, options.Port, 10, tries+1, options.ConnectionAttempts)
 				tries++
-				if tries < opts.ConnectionAttempts {
+				if tries < options.ConnectionAttempts {
 					time.Sleep(10 * time.Second)
 					continue
 				} else {
@@ -134,7 +134,7 @@ func main() {
 
 		if !started {
 			fmt.Println()
-			term.Error("Unable to connect to %s:%d, make sure %s is listening there and try again\n", opts.Host, opts.Port, core.Project)
+			term.Error("Unable to connect to %s:%d, make sure %s is listening there and try again\n", options.Host, options.Port, opts.Project)
 		}
 
 	}

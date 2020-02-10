@@ -131,7 +131,8 @@ const (
 )
 
 func intro() {
-	fmt.Printf("\nUsage: \n\n ./alohomora --server --target <FILE> [options]\n ./alohomora --ip <IP> --port <PORT>\n\n")
+	Banner(true, true)
+	fmt.Printf("Usage: \n\n ./alohomora --server --target <FILE> [options]\n ./alohomora --ip <IP> --port <PORT>\n\n")
 }
 
 func serverIntro() {

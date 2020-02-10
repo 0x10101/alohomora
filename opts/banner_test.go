@@ -1,4 +1,4 @@
-package core
+package opts
 
 import (
 	"testing"
