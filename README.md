@@ -89,7 +89,7 @@ There's so much to do...
  * Add capabilities for cracking archive passwords
  * Improve reporting capabilities
  * Improve code quality
- * Comment more
+ * ~~Comment more~~
  * Write more tests
  * Write useful documentation (!)
  * Make an awesome logo (anyone?)
