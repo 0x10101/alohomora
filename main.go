@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"encoding/xml"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -58,11 +59,19 @@ func report(server *core.Server, jsonFile, xmlFile string) {
 
 func main() {
 
+	t := term.NewTable()
+	t.MaxColWidth = 6
+
+	t.AddRow("Hi", "There", "this")
+	t.AddRow("Is", "a test (a bit longer)")
+
+	fmt.Printf(t.Format())
+
 	if !term.Supported() {
 		term.NoColors()
 	}
 
-	//flag.Usage = opts.Usage
+	flag.Usage = opts.Usage
 
 	opts, err := opts.Parse()
 
