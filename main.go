@@ -59,14 +59,6 @@ func report(server *core.Server, jsonFile, xmlFile string) {
 
 func main() {
 
-	t := term.NewTable()
-	t.MaxColWidth = 6
-
-	t.AddRow("Hi", "There", "this")
-	t.AddRow("Is", "a test (a bit longer)")
-
-	fmt.Printf(t.Format())
-
 	if !term.Supported() {
 		term.NoColors()
 	}
@@ -74,6 +66,7 @@ func main() {
 	flag.Usage = opts.Usage
 
 	opts, err := opts.Parse()
+	fmt.Println(term.BgRed(term.White(term.Bold("After options"))))
 
 	if err != nil {
 		term.Error("Unable to start: %s\n", err)

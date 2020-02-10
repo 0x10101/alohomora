@@ -40,9 +40,11 @@ func (t *Table) spaces(colIndex int) string {
 	for i < colIndex {
 		j := t.widths[i]
 		for j > 0 {
-			sb.WriteString(" ")
+			sb.WriteString("_")
+			j--
 		}
 		sb.WriteString(t.Separator)
+		i++
 	}
 
 	return sb.String()
@@ -81,25 +83,35 @@ func (t *Table) Format() string {
 				// Split the string in parts
 				start := 0
 				end := t.MaxColWidth
-
+				var first bool = true
 				for {
-					fmt.Printf("Slicing %d char string from %d to %d\n", len(str), start, end)
 					part := str[start:end]
 					start = end + 1
+
 					if start > len(str) {
 						start = len(str)
 					}
+
 					end = end + t.MaxColWidth + 1
+
 					if end > len(str) {
 						end = len(str)
 					}
+
 					fStr := fmt.Sprintf("%s%s", wFmt(w), t.Separator)
-					sb.WriteString(t.spaces(colIndex))
+
+					if !first {
+						sb.WriteString(t.spaces(colIndex))
+					}
+
 					sb.WriteString(fmt.Sprintf(fStr, part))
 					sb.WriteString("\n")
+
 					if start == end {
 						break
 					}
+
+					first = false
 				}
 			} else {
 				fStr := fmt.Sprintf("%s%s", wFmt(w), t.Separator)
