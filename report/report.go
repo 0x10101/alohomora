@@ -7,6 +7,7 @@ import (
 	"net"
 	"time"
 
+	"github.com/gosuri/uitable"
 	"github.com/steps0x29a/alohomora/term"
 )
 
@@ -53,26 +54,53 @@ func reportLine(header, value string) {
 func (report *Report) Print() {
 	fmt.Println()
 
-	reportLine("Server started:", report.StartTimestamp.String())
-	reportLine("Server stopped:", report.EndTimestamp.String())
-	reportLine("Charset used:", report.Charset)
-	reportLine("Offset used:", report.Offset.String())
-	reportLine("Password len:", fmt.Sprintf("%d", report.Length))
-	reportLine("Jobsize used:", report.Jobsize.String())
-	reportLine("Finished runs:", report.FinishedRuns.String())
-	reportLine("Type of job:", report.JobType)
-	reportLine("Target used:", report.Target)
-	reportLine("Overall tries:", report.PasswordsTried.String())
-	reportLine("Max clients:", fmt.Sprintf("%d", report.MaxClientsConnected))
-	fmt.Printf("%s\t\t", fmtHeader("Password found:"))
+	t := uitable.New()
+	t.MaxColWidth = 80
+	t.Wrap = true // wrap columns
+	t.AddRow("Server started", fmtValue(report.StartTimestamp.Format("02.01.2006 15:04:05.999")))
+	t.AddRow("Server stopped", fmtValue(report.EndTimestamp.Format("02.01.2006 15:04:05.999")))
+	t.AddRow("Charset", fmtValue(report.Charset))
+	t.AddRow("Offset", fmtValue(report.Offset.String()))
+	t.AddRow("Password length", fmtValue(fmt.Sprintf("%d", report.Length)))
+	t.AddRow("Jobsize", fmtValue(report.Jobsize.String()))
+	t.AddRow("Finished runs", fmtValue(report.FinishedRuns.String()))
+	t.AddRow("Job type", fmtValue(report.JobType))
+	t.AddRow("Target", fmtValue(report.Target))
+	t.AddRow("Passwords tried (approx.)", fmtValue(report.PasswordsTried.String()))
+	t.AddRow("Max. clients connected", fmtValue(fmt.Sprintf("%d", report.MaxClientsConnected)))
 	if report.Success {
-		fmt.Printf("%s\n", term.Bold(term.BrightGreen("YES")))
-		fmt.Printf("%s\t\t%s\n", fmtHeader("Username:"), term.Bold(term.BrightGreen(report.AccessData.Username)))
-		fmt.Printf("%s\t\t%s\n", fmtHeader("Password:"), term.Bold(term.BrightGreen(report.AccessData.Password)))
-		reportLine("Winner client:", fmt.Sprintf("%s (%s)", report.SuccessClientID, report.SuccessClientAddress))
+		t.AddRow("Password cracked", term.Bold(term.BrightGreen("YES")))
+		t.AddRow("Username", term.Bold(term.BrightGreen(report.AccessData.Username)))
+		t.AddRow("Password", term.Bold(term.BrightGreen(report.AccessData.Password)))
+		t.AddRow("Successful client", fmtValue(fmt.Sprintf("%s (%s)", report.SuccessClientID, report.SuccessClientAddress)))
+
 	} else {
-		fmt.Printf("%s\n", term.Bold(term.BrightRed("NO")))
+		t.AddRow("Password cracked", term.Bold(term.BrightRed("NO")))
 	}
+
+	/*
+		reportLine("Server started:", report.StartTimestamp.String())
+		reportLine("Server stopped:", report.EndTimestamp.String())
+		reportLine("Charset used:", report.Charset)
+		reportLine("Offset used:", report.Offset.String())
+		reportLine("Password len:", fmt.Sprintf("%d", report.Length))
+		reportLine("Jobsize used:", report.Jobsize.String())
+		reportLine("Finished runs:", report.FinishedRuns.String())
+		reportLine("Type of job:", report.JobType)
+		reportLine("Target used:", report.Target)
+		reportLine("Overall tries:", report.PasswordsTried.String())
+		reportLine("Max clients:", fmt.Sprintf("%d", report.MaxClientsConnected))
+		fmt.Printf("%s\t\t", fmtHeader("Password found:"))
+		if report.Success {
+			fmt.Printf("%s\n", term.Bold(term.BrightGreen("YES")))
+			fmt.Printf("%s\t\t%s\n", fmtHeader("Username:"), term.Bold(term.BrightGreen(report.AccessData.Username)))
+			fmt.Printf("%s\t\t%s\n", fmtHeader("Password:"), term.Bold(term.BrightGreen(report.AccessData.Password)))
+			reportLine("Winner client:", fmt.Sprintf("%s (%s)", report.SuccessClientID, report.SuccessClientAddress))
+		} else {
+			fmt.Printf("%s\n", term.Bold(term.BrightRed("NO")))
+		}*/
+
+	fmt.Println(t)
 
 }
 

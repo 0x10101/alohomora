@@ -66,7 +66,6 @@ func main() {
 	flag.Usage = opts.Usage
 
 	options, err := opts.Parse()
-	fmt.Println(term.BgRed(term.White(term.Bold("After options"))))
 
 	if err != nil {
 		term.Error("Unable to start: %s\n", err)

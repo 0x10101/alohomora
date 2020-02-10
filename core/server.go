@@ -627,7 +627,7 @@ func Serve(opts *opts.Options) (*Server, error) {
 	server.report.Offset = bigint.ToBigInt(opts.Offset)
 	server.report.Length = opts.Passlen
 	server.report.Jobsize = bigint.ToBigInt(opts.Jobsize)
-	server.report.JobType = "WPA2" //currently hard-coded
+	server.report.JobType = opts.Mode
 	server.report.Target = opts.Target
 
 	go server.accept(listener)
@@ -639,19 +639,18 @@ func Serve(opts *opts.Options) (*Server, error) {
 	go server.checkErrors()
 
 	if opts.EnableREST {
-		term.Info("Enabling REST server on 127.0.0.1:29100\n")
-		api, err := rest.NewAPI(server, "127.0.0.1", 29100)
+		if opts.Verbose {
+			term.Info("Enabling REST server on %s:%d\n", opts.RESTAddress, opts.RESTPort)
+		}
+		api, err := rest.NewAPI(server, opts.RESTAddress, opts.RESTPort)
 		if err != nil {
 			term.Warn("Unable to start REST API: %s\n", err)
 		} else {
 			go api.Serve()
 		}
 	}
-	//go server.serveREST()
 
-	if server.verbose {
-		term.Info("Alohomora Server ready, waiting for clients...\n")
-	}
+	term.Info("Server ready, waiting for clients...\n")
 
 	return server, nil
 }

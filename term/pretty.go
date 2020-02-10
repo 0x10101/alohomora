@@ -21,15 +21,12 @@ func Problem(format string, data ...interface{}) {
 }
 
 func Error(format string, data ...interface{}) {
-	prettyMessage(format, fmt.Sprintf("[%s]", Red("x")), data...)
+	//prettyMessage(format, fmt.Sprintf("[%s]", Red("x")), data...)
+	fmt.Printf("%s %s%s%s%s", fmt.Sprintf("[%s]", Red("x")), AnsiBold, AnsiRed, fmt.Sprintf(format, data...), AnsiReset)
 }
 
 func Success(format string, data ...interface{}) {
 	prettyMessage(format, fmt.Sprintf("[%s]", Green("+")), data...)
-}
-
-func Debug(format string, data ...interface{}) {
-	prettyMessage(format, fmt.Sprintf("[%s]", BgMagenta(Bold(White("D")))), data)
 }
 
 func LabelMagenta(data string) string {

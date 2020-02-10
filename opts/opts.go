@@ -143,7 +143,7 @@ func serverIntro() {
 	t := uitable.New()
 	t.MaxColWidth = 80
 	t.Wrap = true // wrap columns
-	t.AddRow("", "Runs alohomora server on 0.0.0.0:29100 targeting <FILE>. The character set used to generate passwords will be 0123456789. Each password will be 8 characters long and each client will be tasked with 10.000 passwords per job.")
+	t.AddRow("", "Runs alohomora in server mode on 0.0.0.0:29100 targeting <FILE>. The character set used to generate passwords will be 0123456789. Each password will be 8 characters long and each client will be tasked with 10.000 passwords per job.")
 	fmt.Println(t)
 	fmt.Println()
 	fmt.Println(term.Bold("SERVER OPTIONS"))
@@ -158,7 +158,7 @@ func clientIntro() {
 	t := uitable.New()
 	t.MaxColWidth = 80
 	t.Wrap = true // wrap columns
-	t.AddRow("", "Runs alohomora client, connecting to <IP> on <PORT> and waiting for new jobs.")
+	t.AddRow("", "Runs alohomora in client mode, connecting to <IP> on <PORT> and waiting for new jobs. By default, the client will try to connect to the server 5 times (in intervals of 10 seconds) before giving up.")
 	fmt.Println(t)
 	fmt.Println()
 	fmt.Println(term.Bold("CLIENT OPTIONS"))
@@ -262,6 +262,11 @@ func Parse() (*Options, error) {
 
 	flag.Parse()
 
+	// Use --unfancy option if present
+	if args.Unfancy {
+		term.NoColors()
+	}
+
 	return &args, args.validate()
 }
 
@@ -298,6 +303,10 @@ func (opts Options) validate() error {
 		if _, err := os.Stat(opts.Target); os.IsNotExist(err) {
 			// path/to/whatever does not exist
 			return errors.New("Target .pcap file must exist")
+		}
+
+		if opts.Mode != "WPA2" {
+			return fmt.Errorf("Unknown job type: %s", opts.Mode)
 		}
 
 	} else {

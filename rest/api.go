@@ -13,11 +13,11 @@ import (
 type API struct {
 	router  *mux.Router
 	address string
-	port    uint16
+	port    uint
 }
 
 // NewAPI creates a new RestAPI object
-func NewAPI(handler APIHandler, address string, port uint16) (*API, error) {
+func NewAPI(handler APIHandler, address string, port uint) (*API, error) {
 	if handler == nil {
 		return nil, errors.New("An API handler is required")
 	}
