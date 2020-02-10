@@ -6,11 +6,12 @@ import (
 )
 
 type Table struct {
-	cols        int
-	raw         [][]string
-	widths      []int
-	Separator   string
-	MaxColWidth int
+	cols           int
+	raw            [][]string
+	widths         []int
+	Separator      string
+	MaxColWidth    int
+	maxActualWidth int
 }
 
 func NewTable() *Table {
@@ -32,6 +33,21 @@ func wFmt(width int) string {
 	return fmt.Sprintf("%%-%ds", width)
 }
 
+func (t *Table) spaces(colIndex int) string {
+	var i int
+	var sb strings.Builder
+
+	for i < colIndex {
+		j := t.widths[i]
+		for j > 0 {
+			sb.WriteString(" ")
+		}
+		sb.WriteString(t.Separator)
+	}
+
+	return sb.String()
+}
+
 func (t *Table) Format() string {
 
 	var sb strings.Builder
@@ -43,6 +59,9 @@ func (t *Table) Format() string {
 		i = 0
 		for _, str := range arr {
 			l := len(str)
+			if t.maxActualWidth < l {
+				t.maxActualWidth = l
+			}
 			if l > t.widths[i] {
 				t.widths[i] = l
 			}
@@ -51,10 +70,10 @@ func (t *Table) Format() string {
 	}
 
 	fmt.Println(t.widths)
-
 	for _, arr := range t.raw {
 		i = 0
-		for _, str := range arr {
+
+		for colIndex, str := range arr {
 			w := t.widths[i]
 			i++
 
@@ -75,6 +94,7 @@ func (t *Table) Format() string {
 						end = len(str)
 					}
 					fStr := fmt.Sprintf("%s%s", wFmt(w), t.Separator)
+					sb.WriteString(t.spaces(colIndex))
 					sb.WriteString(fmt.Sprintf(fStr, part))
 					sb.WriteString("\n")
 					if start == end {
