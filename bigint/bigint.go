@@ -10,69 +10,75 @@ func dummyF() *big.Float {
 	return big.NewFloat(0.0)
 }
 
-// LessThan determines whether or not big.Int a is less than big.Int b.
+// Lt determines whether or not big.Int a is less than big.Int b.
 // Returns true if a is smaller than b.
-func LessThan(a, b *big.Int) bool {
+func Lt(a, b *big.Int) bool {
 	return a.Cmp(b) < 0
 }
 
-// LTE determines whether or not big.Int a is less than or equal to
+// LtE determines whether or not big.Int a is less than or equal to
 // big.Int b.
 // Returns true if a is less than or smaller than b.
-func LTE(a, b *big.Int) bool {
-	return LessThan(a, b) || SameAs(a, b)
+func LtE(a, b *big.Int) bool {
+	return Lt(a, b) || Eq(a, b)
 }
 
-// GT determines whether or not big.Int a is greater than big.Int b.
+// Gt determines whether or not big.Int a is greater than big.Int b.
 // Returns true if a is greater than b, false otherwise.
-func GT(a, b *big.Int) bool {
+func Gt(a, b *big.Int) bool {
 	return a.Cmp(b) > 0
 }
 
-func GTE(a, b *big.Int) bool {
-	return GT(a, b) || SameAs(a, b)
+// GtE determines whether big.Int a is greater than or equal to big.Int b.
+// Returns true if a is greater than or equal to b, false otherwise.
+func GtE(a, b *big.Int) bool {
+	return Gt(a, b) || Eq(a, b)
 }
 
-func SameAs(a, b *big.Int) bool {
+// Eq determines whether big.Int a is the same as big.Int b.
+// Returns true if a equals b (same value), false otherwise.
+func Eq(a, b *big.Int) bool {
 	return a.Cmp(b) == 0
 }
 
-func Copy(a *big.Int) *big.Int {
+// Cp copies a big.Int and returns the copy.
+func Cp(a *big.Int) *big.Int {
 	x := dummy().Set(a)
-	//info("CPY BI [%s] -> %s\n", a, x)
 	return x
 }
 
+// Add adds big.Int a to big.Int b and returns the result.
 func Add(a, b *big.Int) *big.Int {
 	x := dummy().Add(a, b)
-	//info("ADD BI [%s + %s] -> %s\n", a, b, x)
 	return x
 }
 
+// Sub subtracts big.Int b from big.Int a and returns the result.
 func Sub(a, b *big.Int) *big.Int {
 	x := dummy().Sub(a, b)
-	//info("SUB BI [%s - %s] -> %s\n", a, b, x)
 	return x
 }
 
+// Mul multiplies big.Int a with big.Int b and returns the result.
 func Mul(a, b *big.Int) *big.Int {
 	x := dummy().Mul(a, b)
-	//info("MUL BI [%s * %s] -> %s\n", a, b, x)
 	return x
 }
 
+// MulF multiplies big.Float a with big.Float b and returns the result.
 func MulF(a, b *big.Float) *big.Float {
 	return dummyF().Mul(a, b)
 }
 
+// Div divides big.Int a by big.Int b and returns the result.
 func Div(a, b *big.Int) *big.Int {
 	x := dummy().Div(a, b)
-	//info("DIV BI [%s - %s] -> %s\n", a, b, x)
 	return x
 }
 
+// DivF divides big.Float a by big.Float b and returns the result.
 func DivF(a, b *big.Int) *big.Float {
-	if SameAs(b, big.NewInt(0)) {
+	if Eq(b, big.NewInt(0)) {
 		return new(big.Float).SetInt(big.NewInt(0))
 	}
 	aF := new(big.Float).SetInt(a)
@@ -80,21 +86,22 @@ func DivF(a, b *big.Int) *big.Float {
 	return dummyF().Quo(aF, bF)
 }
 
+// Mod divides big.Int a by big.Int b and returns the remainder.
 func Mod(a, b *big.Int) *big.Int {
 	x := dummy().Mod(a, b)
-	//info("MOD BI [%s %% %s] -> %s\n", a, b, x)
 	return x
 }
 
+// Pow calculates a ** b and returns the result.
 func Pow(a, b *big.Int) *big.Int {
 	x := dummy().Exp(a, b, nil)
-	//info("POW BI [%s ^ %s] -> %s\n", a, b, x)
 	return x
 }
 
+// Percent calculates a percentage based on a total and a current value and returns it.
 func Percent(total, current *big.Int) *big.Float {
 
-	if SameAs(total, big.NewInt(0)) {
+	if Eq(total, big.NewInt(0)) {
 		return big.NewFloat(0.0)
 	}
 
@@ -103,6 +110,7 @@ func Percent(total, current *big.Int) *big.Float {
 	return MulF(tmp, big.NewFloat(100.0))
 }
 
+// ToBigInt converts a string to a big.Int and returns it.
 func ToBigInt(data string) *big.Int {
 	i := new(big.Int)
 	i.SetString(data, 10)

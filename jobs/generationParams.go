@@ -19,6 +19,8 @@ type GenerationParams struct {
 	Amount int64
 }
 
+// Encode encodes a GenerationParams object to a byte slice that can be sent via a socket
+// connection and returns it. If an error occurrs, that error is returned instead.
 func (params *GenerationParams) Encode() ([]byte, error) {
 	buffer := new(bytes.Buffer)
 	encoder := gob.NewEncoder(buffer)

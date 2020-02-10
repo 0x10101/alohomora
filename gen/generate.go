@@ -25,7 +25,7 @@ func GeneratePassword(charset []rune, length int64, shift *big.Int) (string, err
 	// The max value is the maximum rotation possible with the given input data
 	var maxValue = bigint.Sub(bigint.Pow(size, bigLength), big.NewInt(1))
 
-	if bigint.LessThan(maxValue, shift) {
+	if bigint.Lt(maxValue, shift) {
 		// maxValue is smaller than requested amount, error!
 		return "", errors.New("Amount is too large")
 	}
@@ -40,7 +40,7 @@ func GeneratePassword(charset []rune, length int64, shift *big.Int) (string, err
 	var pointers = make([]int, length)
 
 	// remaining rotation value, modified in loop below
-	var remaining = bigint.Copy(shift)
+	var remaining = bigint.Cp(shift)
 
 	// Maximum rotation value for any given position (at first index, that is)
 	var maxRotVal = bigint.Pow(size, bigint.Sub(bigLength, big.NewInt(1)))
@@ -48,9 +48,9 @@ func GeneratePassword(charset []rune, length int64, shift *big.Int) (string, err
 	zero := big.NewInt(0)
 
 	// Loop until remaining rotations are 0
-	for bigint.GT(remaining, zero) {
+	for bigint.Gt(remaining, zero) {
 		// while remaining is larger than rotation value of first position...
-		for bigint.GT(remaining, maxRotVal) {
+		for bigint.Gt(remaining, maxRotVal) {
 			// Rotate first rune
 			pointers[0]++
 			remaining = bigint.Sub(remaining, maxRotVal)
@@ -60,11 +60,11 @@ func GeneratePassword(charset []rune, length int64, shift *big.Int) (string, err
 			// Get rotational value for current position
 			var rotVal = bigint.Pow(size, bigint.Sub(bigint.Sub(bigLength, big.NewInt(1)), big.NewInt(i)))
 			// If rotational value is larger than remaning rotations
-			if bigint.GT(rotVal, remaining) {
+			if bigint.Gt(rotVal, remaining) {
 				// find position to rotate (one to the right)
 				var rotPos = bigint.Add(big.NewInt(i), big.NewInt(1))
 				// Make sure we don't get out of range
-				if bigint.GT(rotPos, bigint.Sub(bigLength, big.NewInt(1))) {
+				if bigint.Gt(rotPos, bigint.Sub(bigLength, big.NewInt(1))) {
 					rotPos.Set(bigint.Sub(bigLength, big.NewInt(1)))
 				}
 				// Calculate rotational value
@@ -74,7 +74,7 @@ func GeneratePassword(charset []rune, length int64, shift *big.Int) (string, err
 				pointers[rotPos.Int64()]++
 				break
 
-			} else if bigint.SameAs(rotVal, remaining) {
+			} else if bigint.Eq(rotVal, remaining) {
 				// Remaining is same as current position's rotational value, simply rotate
 				pointers[i]++
 				remaining = bigint.Sub(remaining, rotVal)

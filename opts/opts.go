@@ -165,6 +165,8 @@ func clientIntro() {
 	fmt.Println()
 }
 
+// Usage prints a custom usage message. This function is passed to
+// flag.Usage in order to automatically print usage information when needed.
 func Usage() {
 	intro()
 	serverIntro()
@@ -304,7 +306,7 @@ func (opts Options) validate() error {
 			return err
 		}
 
-		if bigint.LessThan(bigint.ToBigInt(opts.Offset), big.NewInt(0)) {
+		if bigint.Lt(bigint.ToBigInt(opts.Offset), big.NewInt(0)) {
 			return errors.New("Offset must be a positive number or 0")
 		}
 
@@ -312,7 +314,7 @@ func (opts Options) validate() error {
 			return errors.New("Minimum password length is 1")
 		}
 
-		if bigint.LTE(bigint.ToBigInt(opts.Jobsize), big.NewInt(0)) {
+		if bigint.LtE(bigint.ToBigInt(opts.Jobsize), big.NewInt(0)) {
 			return errors.New("Jobsize must be a positive number")
 		}
 

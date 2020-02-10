@@ -26,6 +26,8 @@ type CrackJob struct {
 	Started time.Time
 }
 
+// The CrackJobInfo type is used to report information on a CrackJob via the server's
+// REST API as a JSON object.
 type CrackJobInfo struct {
 	Type    string    `json:"type"`
 	ID      string    `json:"id"`
@@ -36,10 +38,14 @@ type CrackJobInfo struct {
 	Offset  *big.Int  `json:"offset"`
 }
 
+// String calculates and returns a CrackJob's short ID and returns it as a string.
+// A CrackJob's short ID are the first 8 characters of its UUID.
 func (job *CrackJob) String() string {
 	return fmt.Sprintf("%s", job.ID.String()[:8])
 }
 
+// Info builds and returns a CrackJobInfo object from a CrackJob object in order
+// to send it via the server's REST API (as JSON).
 func (job *CrackJob) Info() *CrackJobInfo {
 	return &CrackJobInfo{
 		Type:    job.Type.String(),
@@ -48,10 +54,13 @@ func (job *CrackJob) Info() *CrackJobInfo {
 		Charset: string(job.Gen.Charset),
 		Length:  job.Gen.Length,
 		Amount:  job.Gen.Amount,
-		Offset:  bigint.Copy(job.Gen.Offset),
+		Offset:  bigint.Cp(job.Gen.Offset),
 	}
 }
 
+// DecodeJob decodes a CrackJob from a slice of bytes.
+// If decoding the raw bytes succeeds, the newly decoded object is returned.
+// In case an error occurrs, that error is returned instead.
 func DecodeJob(data []byte) (*CrackJob, error) {
 	tmp := bytes.NewBuffer(data)
 	tmpStruct := new(CrackJob)
@@ -62,9 +71,11 @@ func DecodeJob(data []byte) (*CrackJob, error) {
 	}
 
 	return tmpStruct, nil
-
 }
 
+// DecodeWPA2 attempts to decode a CrackJob's payload as a WPA2Payload.
+// If decoding succeeds, the decoded WPA2Payload is returned. If it fails, an error
+// is returned instead.
 func (job *CrackJob) DecodeWPA2() (*WPA2Payload, error) {
 	tmp := bytes.NewBuffer(job.Payload)
 	tmpStruct := new(WPA2Payload)
@@ -76,6 +87,8 @@ func (job *CrackJob) DecodeWPA2() (*WPA2Payload, error) {
 	return tmpStruct, nil
 }
 
+// Encode encodes a CrackJob object to a byte slice that can be sent via
+// a socket connection.
 func (job *CrackJob) Encode() ([]byte, error) {
 	buffer := new(bytes.Buffer)
 	encoder := gob.NewEncoder(buffer)
@@ -86,6 +99,12 @@ func (job *CrackJob) Encode() ([]byte, error) {
 	return buffer.Bytes(), nil
 }
 
+// NewWPA2Job generates a new WPA2 crack job from the given parameters.
+// The function requires the handshake's raw bytes (data), a password length (length),
+// and offset for password generation (offset), the amount of passwords to generate for
+// attempting this job (amount), an ESSID and a BSSID.
+// If everything works as expected, the newly generated CrackJob is returned.
+// In case of an error, that error is returned instead.
 func NewWPA2Job(data []byte, charset []rune, length int64, offset *big.Int, amount int64, essid, bssid string) (*CrackJob, error) {
 	id, err := uuid.NewV4()
 	if err != nil {

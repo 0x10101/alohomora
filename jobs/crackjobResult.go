@@ -17,6 +17,8 @@ type CrackJobResult struct {
 	JobID uuid.UUID
 }
 
+// Encode encodes a CrackJobResult object to a byte slice that can be sent via
+// a socket connection. The byte slice is returned. If an error occurrs, that error is returned instead.
 func (result *CrackJobResult) Encode() ([]byte, error) {
 	buffer := new(bytes.Buffer)
 	encoder := gob.NewEncoder(buffer)
@@ -27,6 +29,8 @@ func (result *CrackJobResult) Encode() ([]byte, error) {
 	return buffer.Bytes(), nil
 }
 
+// DecodeResult decodes a byte slice to a CrackJobResult object and returns it.
+// In case of an error, that error is returned instead.
 func DecodeResult(data []byte) (*CrackJobResult, error) {
 	tmp := bytes.NewBuffer(data)
 	tmpStruct := new(CrackJobResult)

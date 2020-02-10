@@ -227,7 +227,7 @@ func (server *Server) onClientResponse(client *Client, message *msg.Message) {
 	client.tried = bigint.Add(client.tried, big.NewInt(job.Gen.Amount))
 	delete(server.Pending, client)
 	server.FinishedJobs = bigint.Add(server.FinishedJobs, big.NewInt(1))
-	server.report.FinishedRuns = bigint.Copy(server.FinishedJobs)
+	server.report.FinishedRuns = bigint.Cp(server.FinishedJobs)
 	server.Unlock()
 
 	if err != nil {
@@ -446,16 +446,16 @@ func (server *Server) initCrackjobs(opts *opts.Options) {
 	runs := bigint.Div(maxValue, jobsize)
 
 	mod := bigint.Mod(maxValue, jobsize)
-	if !bigint.SameAs(mod, big.NewInt(0)) {
+	if !bigint.Eq(mod, big.NewInt(0)) {
 		runs = bigint.Add(runs, big.NewInt(1))
 	}
 
-	server.TotalJobs = bigint.Copy(runs)
+	server.TotalJobs = bigint.Cp(runs)
 
 	var jobindex *big.Int = big.NewInt(0)
-	var remaining *big.Int = bigint.Copy(maxValue)
+	var remaining *big.Int = bigint.Cp(maxValue)
 
-	if bigint.LessThan(remaining, big.NewInt(0)) {
+	if bigint.Lt(remaining, big.NewInt(0)) {
 		term.Error("Invalid offset: %s\n", offset)
 		//server.Terminated <- true
 		server.Terminate()
@@ -463,10 +463,10 @@ func (server *Server) initCrackjobs(opts *opts.Options) {
 	}
 
 	// While remaining > 0
-	for bigint.GT(remaining, big.NewInt(0)) {
+	for bigint.Gt(remaining, big.NewInt(0)) {
 
-		var runAmount *big.Int = bigint.Copy(jobsize)
-		if bigint.LessThan(remaining, jobsize) {
+		var runAmount *big.Int = bigint.Cp(jobsize)
+		if bigint.Lt(remaining, jobsize) {
 			runAmount.Set(remaining)
 		}
 		remaining = bigint.Sub(remaining, runAmount)
@@ -499,7 +499,7 @@ func (server *Server) initCrackjobs(opts *opts.Options) {
 		}*/
 
 		server.Queue <- job
-		if bigint.GTE(jobindex, server.maxjobs) && bigint.GT(server.maxjobs, big.NewInt(0)) {
+		if bigint.GtE(jobindex, server.maxjobs) && bigint.Gt(server.maxjobs, big.NewInt(0)) {
 			term.Info("Maximum amount of jobs reached, stopping job generation\n")
 			server.maximumJobsReached = true
 			break
@@ -545,12 +545,12 @@ func (server *Server) updateProgress() {
 	ticker := time.NewTicker(time.Millisecond * 2000)
 	for {
 		<-ticker.C
-		if server.generationFinished && bigint.GTE(server.FinishedJobs, server.TotalJobs) {
+		if server.generationFinished && bigint.GtE(server.FinishedJobs, server.TotalJobs) {
 			server.onProgress()
 			term.Info("All jobs finished, terminating...\n")
 			server.Terminate()
 			//server.Terminated <- true
-		} else if server.maximumJobsReached && bigint.GTE(server.FinishedJobs, server.maxjobs) {
+		} else if server.maximumJobsReached && bigint.GtE(server.FinishedJobs, server.maxjobs) {
 			server.onProgress()
 			term.Info("Maximum number of jobs reached, terminating...\n")
 			//server.Terminated <- true
