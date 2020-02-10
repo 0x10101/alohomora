@@ -270,18 +270,38 @@ func Parse() (*Options, error) {
 	return &args, args.validate()
 }
 
+func validPort(port uint) bool {
+	return port > 0 && port <= 65535
+}
+
+func validateRESTOptions(opts Options) error {
+	if !opts.EnableREST {
+		return nil
+	}
+
+	if !validPort(opts.RESTPort) {
+		return errors.New("A valid REST port is required")
+	}
+
+	if opts.RESTPort == opts.Port {
+		return errors.New("REST port and listening port must not be the same")
+	}
+
+	return nil
+}
+
 func (opts Options) validate() error {
 	if opts.Server {
 		if len(opts.Host) == 0 {
 			return errors.New("A valid listening address is required")
 		}
 
-		if opts.Port < 0 || opts.Port > 65535 {
+		if !validPort(opts.Port) {
 			return errors.New("A valid port number is required")
 		}
 
-		if opts.EnableREST && (opts.RESTPort < 0 || opts.RESTPort > 65535 || opts.RESTPort == opts.Port) {
-			return errors.New("REST port is invalid")
+		if err := validateRESTOptions(opts); err != nil {
+			return err
 		}
 
 		if bigint.LessThan(bigint.ToBigInt(opts.Offset), big.NewInt(0)) {
