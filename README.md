@@ -87,15 +87,17 @@ There's so much to do...
  * ~~Improve traffic use by omitting handshakes when talking to known clients~~
  * Add capabilities for cracking hashes
  * Add capabilities for cracking archive passwords
- * Improve reporting capabilities
+ * ~~Improve reporting capabilities~~
  * Improve code quality
  * ~~Comment more~~
  * Write more tests
- * Write useful documentation (!)
+ * ~~Write useful documentation~~
  * Make an awesome logo (anyone?)
  * Improve REST interface
  * Make an awesome web interface for it
- * Improve github presence
+ * ~~Improve github presence~~
+ * Make a docker container 
+ * Create a working cross-platform build process
 
 # Version history
 
