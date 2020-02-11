@@ -211,7 +211,6 @@ func Parse() (*Options, error) {
 
 func validPort(port uint) bool {
 	return port > 0 && port <= 65535
-
 }
 
 func validateRESTOptions(opts Options) error {
@@ -259,11 +258,6 @@ func (opts Options) validate() error {
 		if len(opts.Charset) == 0 {
 			return errors.New("Charset must contain at least one character")
 		}
-
-		/*if _, err := os.Stat(opts.Target); os.IsNotExist(err) {
-			// path/to/whatever does not exist
-			return errors.New("Target .pcap file must exist")
-		}*/
 
 		if opts.Mode != "WPA2" {
 			return fmt.Errorf("Unknown job type: %s", opts.Mode)

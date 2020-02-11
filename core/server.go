@@ -650,7 +650,7 @@ func Serve(opts *opts.Options) (*Server, error) {
 	found := make(chan bool)
 	go waitForTarget(opts.Target, found)
 	if opts.Verbose {
-		term.Info("Waiting for target to become available...\n")
+		term.Info("Waiting for %s to become available...\n", term.BrightYellow(opts.Target))
 	}
 	<-found
 	if opts.Verbose {
