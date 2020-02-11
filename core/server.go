@@ -7,6 +7,7 @@ import (
 	"math/big"
 	"net"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 
@@ -612,6 +613,19 @@ func (server *Server) PendingJobsHandleFunc(res http.ResponseWriter, req *http.R
 	}
 }
 
+func waitForTarget(target string, found chan bool) {
+	for {
+		if _, err := os.Stat(target); os.IsNotExist(err) {
+			time.Sleep(time.Second * 2)
+			continue
+		}
+
+		// Found
+		found <- true
+		break
+	}
+}
+
 // Serve builds a new Server instance and starts listening on the provided address/port.
 func Serve(opts *opts.Options) (*Server, error) {
 	listener, err := net.Listen("tcp", fmt.Sprintf("%s:%d", opts.Host, opts.Port))
@@ -632,6 +646,17 @@ func Serve(opts *opts.Options) (*Server, error) {
 
 	go server.accept(listener)
 	go server.loop()
+
+	found := make(chan bool)
+	go waitForTarget(opts.Target, found)
+	if opts.Verbose {
+		term.Info("Waiting for target to become available...\n")
+	}
+	<-found
+	if opts.Verbose {
+		term.Info("Target available, let's go!\n")
+	}
+
 	go server.initCrackjobs(opts)
 	go server.dispatch()
 	go server.checkPending()
@@ -650,7 +675,7 @@ func Serve(opts *opts.Options) (*Server, error) {
 		}
 	}
 
-	term.Info("Server ready, waiting for clients...\n")
+	term.Info("Server ready\n")
 
 	return server, nil
 }

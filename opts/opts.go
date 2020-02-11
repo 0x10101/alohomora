@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"math/big"
-	"os"
 
 	"github.com/steps0x29a/alohomora/bigint"
 	"github.com/steps0x29a/alohomora/term"
@@ -251,10 +250,10 @@ func (opts Options) validate() error {
 			return errors.New("Charset must contain at least one character")
 		}
 
-		if _, err := os.Stat(opts.Target); os.IsNotExist(err) {
+		/*if _, err := os.Stat(opts.Target); os.IsNotExist(err) {
 			// path/to/whatever does not exist
 			return errors.New("Target .pcap file must exist")
-		}
+		}*/
 
 		if opts.Mode != "WPA2" {
 			return fmt.Errorf("Unknown job type: %s", opts.Mode)
