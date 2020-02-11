@@ -259,6 +259,10 @@ func (opts Options) validate() error {
 			return errors.New("Charset must contain at least one character")
 		}
 
+		if len(opts.Target) == 0 {
+			return errors.New("A target is required")
+		}
+
 		if opts.Mode != "WPA2" {
 			return fmt.Errorf("Unknown job type: %s", opts.Mode)
 		}
