@@ -68,6 +68,7 @@ func Usage() {
 	t.AddRow(fmt.Sprintf("  --%s", restFlag), "Enable alohomora's integrated REST server (highly experimental!). Default is disabled\n")
 	t.AddRow(fmt.Sprintf("  --%s <IP>", restAddressFlag), "Make alohomora's integrated REST server listen on this address (highly experimental!). Default is 127.0.0.1\n")
 	t.AddRow(fmt.Sprintf("  --%s <PORT>", restPortFlag), "Make alohomora's integrated REST server listen on this port (highly experimental!). Default is 29101\n")
+	t.AddRow(fmt.Sprintf("  -%s / --%s", forceCharsetFlagShort, forceCharsetFlag), "Force charset, don't scramble and don't clean it up. This is useful if a server is restarted with a different offset (scrambling and cleaning mess up the charset's order, so a lot of passwords might be lost if they are applied and the server is restarted with a different offset)")
 	fmt.Println(t)
 
 	clientIntro()

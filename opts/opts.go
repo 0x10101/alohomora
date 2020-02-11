@@ -33,6 +33,7 @@ type Options struct {
 	RESTAddress        string
 	RESTPort           uint
 	ConnectionAttempts uint
+	ForceCharset       bool
 }
 
 const (
@@ -126,6 +127,10 @@ const (
 
 	restPortFlag        = "restport"
 	restPortFlagDefault = 29101
+
+	forceCharsetFlag        = "force-charset"
+	forceCharsetFlagShort   = "f"
+	forceCharsetFlagDefault = false
 )
 
 // Parse parses all command line parameters provided and encapsulates them in an
@@ -186,6 +191,9 @@ func Parse() (*Options, error) {
 	flag.UintVar(&args.ConnectionAttempts, attemptsFlag, attemptsFlagDefault, attemptsFlagHelp)
 	flag.UintVar(&args.ConnectionAttempts, attemptsFlagShort, attemptsFlagDefault, attemptsFlagHelp)
 
+	flag.BoolVar(&args.ForceCharset, forceCharsetFlag, forceCharsetFlagDefault, "")
+	flag.BoolVar(&args.ForceCharset, forceCharsetFlagShort, forceCharsetFlagDefault, "")
+
 	flag.Parse()
 
 	// Use --unfancy option if present
@@ -194,7 +202,9 @@ func Parse() (*Options, error) {
 	}
 
 	// Cleanup the charset
-	args.Charset = string(CleanupCharset([]rune(args.Charset)))
+	if !args.ForceCharset {
+		args.Charset = string(CleanupCharset([]rune(args.Charset)))
+	}
 
 	return &args, args.validate()
 }
