@@ -15,12 +15,12 @@ func intro() {
 func serverIntro() {
 	fmt.Println(term.Bold("SERVER MODE USAGE"))
 	fmt.Println()
-	fmt.Println("  ./alohomora --server --target <FILE>")
+	fmt.Println("  ./alohomora --server")
 	fmt.Println()
 	t := uitable.New()
 	t.MaxColWidth = 80
 	t.Wrap = true // wrap columns
-	t.AddRow("", "Runs alohomora in server mode on 0.0.0.0:29100 targeting <FILE>. The character set used to generate passwords will be 0123456789. Each password will be 8 characters long and each client will be tasked with 10.000 passwords per job.")
+	t.AddRow("", "Runs alohomora in server mode on 0.0.0.0:29100 with the default target (which is 'handshake.pcap' in the current working directory). The character set used to generate passwords will be 0123456789. Each password will be 8 characters long and each client will be tasked with 10.000 passwords per job.")
 	fmt.Println(t)
 	fmt.Println()
 	fmt.Println(term.Bold("SERVER OPTIONS"))
@@ -55,7 +55,7 @@ func Usage() {
 	t.AddRow(fmt.Sprintf("  -%s / --%s <IP>", serverFlagShort, serverFlag), "Set the server's listen address. Defaults to 0.0.0.0.\n")
 	t.AddRow(fmt.Sprintf("  -%s / --%s <PORT>", portFlagShort, portFlag), "Set the server's listen port. Defaults to 29100.\n")
 	t.AddRow(fmt.Sprintf("  -%s / --%s <MODE>", modeFlagShort, modeFlag), "Set the mode of operation. Default is 'WPA2'.\n\nCurrently supported modes:\n\n  - WPA2 [WPA2 handshake cracking] (default)\n\n")
-	t.AddRow(fmt.Sprintf("  -%s / --%s <PATH>", targetFlagShort, targetFlag), "Set the cracking target (path to a file).\n")
+	t.AddRow(fmt.Sprintf("  -%s / --%s <PATH>", targetFlagShort, targetFlag), "Set the cracking target (path to a file). By default, alohomora server will use 'handshake.pcap' in the current working directory. If that file is not present, alohomora will wait for it.\n")
 	t.AddRow(fmt.Sprintf("  -%s / --%s <STRING>", charsetFlagShort, charsetFlag), "Set the charset used for password generation. Default charset is '0123456789'.\n")
 	t.AddRow(fmt.Sprintf("  -%s / --%s <NUM>", offsetFlagShort, offsetFlag), "Set the password generation offset. Default value is 0. This can come in handy if, for example, you know that the first 3 digits of a passphrase are '123' and you want to speed up the cracking process. Let's say that the passphrase is '123_____' (8 digits). Running alohomora with offset 12300000 will significantly reduce the amount of passphrases required to try before succeeding. This works with letters and symbols as well, of course.\n")
 	t.AddRow(fmt.Sprintf("  -%s / --%s <NUM>", jobsizeFlagShort, jobsizeFlag), "Set the amount of passwords that each client should attempt in each job. Default value is 10.000. Use this if you have high or low performance clients in order to improve cracking speeds.\n")
