@@ -27,7 +27,7 @@ func NewAPI(handler APIHandler, address string, port uint) (*API, error) {
 	api.router = mux.NewRouter().StrictSlash(true)
 	api.router.HandleFunc("/", handler.SlashRoot)
 	api.router.HandleFunc("/clients", handler.ClientsHandleFunc)
-	api.router.HandleFunc("/clients/{id}", handler.ClientDetailHandleFunc)
+	api.router.HandleFunc("/client/{id}", handler.ClientDetailHandleFunc)
 	api.router.HandleFunc("/jobs", handler.PendingJobsHandleFunc)
 
 	return api, nil

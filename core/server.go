@@ -586,7 +586,14 @@ func (server *Server) ClientsHandleFunc(res http.ResponseWriter, req *http.Reque
 	clients := make([]*ClientInfo, 0)
 	for client, connected := range server.Clients {
 		if connected {
-			clients = append(clients, client.Info())
+			info := client.Info()
+			// Get current job
+			job := server.Pending[client]
+
+			if job != nil {
+				info.CurrentJob = job.ID.String()[:8]
+			}
+			clients = append(clients, info)
 		}
 	}
 
@@ -598,11 +605,36 @@ func (server *Server) ClientsHandleFunc(res http.ResponseWriter, req *http.Reque
 	}
 }
 
+// ClientDetailHandleFunc wraps a single client's information in a ClientInfo object and
+// marshals that information to JSON. Server implements RESTHandler interface.
 func (server *Server) ClientDetailHandleFunc(res http.ResponseWriter, req *http.Request) {
 	params := mux.Vars(req)
 	id := params["id"]
-	fmt.Println("Client requested info on client", id)
-	fmt.Fprintf(res, "OK")
+
+	if server.verbose {
+		term.Info("REST client requested info on client %s\n", id)
+	}
+
+	// Find the client
+	for client := range server.Clients {
+		if client.ShortID() == id {
+			info := client.Info()
+
+			// Get current job
+			job := server.Pending[client]
+
+			if job != nil {
+				info.CurrentJob = job.ID.String()[:8]
+			}
+
+			data, err := json.MarshalIndent(info, "", " ")
+			if err != nil {
+				term.Error("Unable to marshal client to JSON: %s\n", err)
+			} else {
+				fmt.Fprint(res, string(data))
+			}
+		}
+	}
 }
 
 // PendingJobsHandleFunc wraps all pending jobs in JobInfo objects and marshals that info to JSON.

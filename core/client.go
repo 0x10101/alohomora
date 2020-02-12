@@ -45,23 +45,25 @@ type Client struct {
 
 // ClientInfo wraps information on a client for reporting.
 type ClientInfo struct {
-	ID        string   `json:"id"`
-	Address   string   `json:"address"`
-	Connected string   `json:"connected"`
-	Assigned  uint64   `json:"assigned"`
-	Finished  uint64   `json:"finished"`
-	Tried     *big.Int `json:"tried"`
+	ID         string   `json:"id"`
+	Address    string   `json:"address"`
+	Connected  string   `json:"connected"`
+	Assigned   uint64   `json:"assigned"`
+	Finished   uint64   `json:"finished"`
+	Tried      *big.Int `json:"tried"`
+	CurrentJob string   `json:"currentjob"`
 }
 
 // Info creates a ClientInfo instance from a Client pointer and returns it.
 func (client *Client) Info() *ClientInfo {
 	info := &ClientInfo{
-		ID:        client.ShortID(),
-		Address:   client.Socket.RemoteAddr().String(),
-		Connected: client.connected.String(),
-		Assigned:  client.assigned,
-		Finished:  client.finished,
-		Tried:     client.tried,
+		ID:         client.ShortID(),
+		Address:    client.Socket.RemoteAddr().String(),
+		Connected:  client.connected.String(),
+		Assigned:   client.assigned,
+		Finished:   client.finished,
+		Tried:      client.tried,
+		CurrentJob: "",
 	}
 	return info
 }
