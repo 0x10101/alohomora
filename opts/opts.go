@@ -89,7 +89,7 @@ const (
 
 	targetFlag        = "target"
 	targetFlagShort   = "t"
-	targetFlagDefault = ""
+	targetFlagDefault = "handshake.pcap"
 	targetFlagHelp    = "Full path to a valid .pcap file containing the handshake to crack"
 
 	timeoutFlag        = "timeout"

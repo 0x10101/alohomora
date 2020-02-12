@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/steps0x29a/alohomora/report"
 	"github.com/steps0x29a/alohomora/rest"
 
@@ -595,6 +596,13 @@ func (server *Server) ClientsHandleFunc(res http.ResponseWriter, req *http.Reque
 	} else {
 		fmt.Fprint(res, string(data))
 	}
+}
+
+func (server *Server) ClientDetailHandleFunc(res http.ResponseWriter, req *http.Request) {
+	params := mux.Vars(req)
+	id := params["id"]
+	fmt.Println("Client requested info on client", id)
+	fmt.Fprintf(res, "OK")
 }
 
 // PendingJobsHandleFunc wraps all pending jobs in JobInfo objects and marshals that info to JSON.
