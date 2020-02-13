@@ -55,8 +55,14 @@ To connect a client to the server from the example above:
 That's all, actually.
 
 # Installing
-Clone the repository, then run it:
+Clone the repository, install dependencies using `go get`, install build tools, then run it:
 
+    git clone https://github.com/steps0x29a/alohomora
+    go get -u github.com/google/gopacket
+    go get -u github.com/gorilla/mux
+    go get -u github.com/gosuri/uitable
+    go get -u github.com/satori/go.uuid
+    sudo apt update && sudo apt install -y build-essential libpcap-dev
     go run main.go --help
     
 Or simply download a release and run it:
@@ -96,7 +102,7 @@ There's so much to do...
  * Improve REST interface
  * Make an awesome web interface for it
  * ~~Improve github presence~~
- * Make a docker container 
+ * ~~Make a docker container~~
  * Create a working cross-platform build process
 
 # Version history

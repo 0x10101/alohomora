@@ -7,6 +7,9 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/steps0x29a/alohomora/gen"
+	"github.com/steps0x29a/alohomora/term"
+
 	uuid "github.com/satori/go.uuid"
 	"github.com/steps0x29a/alohomora/bigint"
 )
@@ -36,6 +39,8 @@ type CrackJobInfo struct {
 	Length  int64     `json:"length"`
 	Amount  int64     `json:"amount"`
 	Offset  *big.Int  `json:"offset"`
+	First   string    `json:"first"`
+	Last    string    `json:"last"`
 }
 
 // String calculates and returns a CrackJob's short ID and returns it as a string.
@@ -47,6 +52,20 @@ func (job *CrackJob) String() string {
 // Info builds and returns a CrackJobInfo object from a CrackJob object in order
 // to send it via the server's REST API (as JSON).
 func (job *CrackJob) Info() *CrackJobInfo {
+
+	first, err := gen.GeneratePassword(job.Gen.Charset, job.Gen.Length, job.Gen.Offset)
+	if err != nil {
+		term.Warn("Unable to calculate first password of job %s: %s\n", job.ShortID(), err)
+		first = "<err>"
+	}
+
+	amnt := big.NewInt(job.Gen.Amount)
+	last, err := gen.GeneratePassword(job.Gen.Charset, job.Gen.Length, bigint.Sub(bigint.Add(job.Gen.Offset, amnt), big.NewInt(1)))
+	if err != nil {
+		term.Warn("Unable to calculate last password of job %s: %s\n", job.ShortID(), err)
+		last = "<err>"
+	}
+
 	return &CrackJobInfo{
 		Type:    job.Type.String(),
 		ID:      job.ID.String()[:8],
@@ -55,6 +74,8 @@ func (job *CrackJob) Info() *CrackJobInfo {
 		Length:  job.Gen.Length,
 		Amount:  job.Gen.Amount,
 		Offset:  bigint.Cp(job.Gen.Offset),
+		First:   first,
+		Last:    last,
 	}
 }
 
@@ -71,6 +92,11 @@ func DecodeJob(data []byte) (*CrackJob, error) {
 	}
 
 	return tmpStruct, nil
+}
+
+// ShortID returns the first eight characters of a job's ID as a string.
+func (job *CrackJob) ShortID() string {
+	return job.ID.String()[:8]
 }
 
 // DecodeWPA2 attempts to decode a CrackJob's payload as a WPA2Payload.

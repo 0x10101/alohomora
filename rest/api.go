@@ -29,6 +29,7 @@ func NewAPI(handler APIHandler, address string, port uint) (*API, error) {
 	api.router.HandleFunc("/clients", handler.ClientsHandleFunc)
 	api.router.HandleFunc("/client/{id}", handler.ClientDetailHandleFunc)
 	api.router.HandleFunc("/jobs", handler.PendingJobsHandleFunc)
+	api.router.HandleFunc("/job/{id}", handler.PendingJobDetailsHandleFunc)
 
 	return api, nil
 }

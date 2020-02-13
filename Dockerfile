@@ -15,9 +15,11 @@ RUN GOOS="linux" GOARCH="amd64" go build -v -ldflags "-w -s" -o alohomora main.g
 FROM alpine
 RUN apk add --no-cache --update bash libpcap
 RUN mkdir /alohomora
+RUN mkdir /data
+VOLUME ["/data"]
 COPY --from=build-env /go/src/github.com/steps0x29a/alohomora/alohomora /alohomora
 WORKDIR /alohomora
 
 EXPOSE 29100 29101
-ENTRYPOINT ["/alohomora/alohomora"]
-CMD ["--server", "-v", "--ip", "127.0.0.1"]
+ENTRYPOINT ["/alohomora/alohomora", "--server", "-v"]
+CMD ["--ip", "127.0.0.1"]

@@ -605,6 +605,28 @@ func (server *Server) ClientsHandleFunc(res http.ResponseWriter, req *http.Reque
 	}
 }
 
+func (server *Server) PendingJobDetailsHandleFunc(res http.ResponseWriter, req *http.Request) {
+	params := mux.Vars(req)
+	id := params["id"]
+
+	if server.verbose {
+		term.Info("REST clent requested info on job %s\n", id)
+	}
+
+	for _, job := range server.Pending {
+		if job.ShortID() == id {
+			// This is the one
+			info := job.Info()
+			data, err := json.MarshalIndent(info, "", "  ")
+			if err != nil {
+				term.Error("Unable to marshal job to JSON: %s\n", err)
+			} else {
+				fmt.Fprint(res, string(data))
+			}
+		}
+	}
+}
+
 // ClientDetailHandleFunc wraps a single client's information in a ClientInfo object and
 // marshals that information to JSON. Server implements RESTHandler interface.
 func (server *Server) ClientDetailHandleFunc(res http.ResponseWriter, req *http.Request) {

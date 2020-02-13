@@ -14,6 +14,9 @@ type APIHandler interface {
 	// PendingJobsHandleFunc handles calls to /jobs
 	PendingJobsHandleFunc(res http.ResponseWriter, req *http.Request)
 
-	// ClientDetailHandleFunc handles calls to /clients/{id}
+	// PendingJobDetailHandleFunc handles calls to /job/{id}
+	PendingJobDetailsHandleFunc(rest http.ResponseWriter, req *http.Request)
+
+	// ClientDetailHandleFunc handles calls to /client/{id}
 	ClientDetailHandleFunc(res http.ResponseWriter, req *http.Request)
 }
