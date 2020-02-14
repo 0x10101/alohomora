@@ -26,10 +26,16 @@ func NewAPI(handler APIHandler, address string, port uint) (*API, error) {
 	api.port = port
 	api.router = mux.NewRouter().StrictSlash(true)
 	api.router.HandleFunc("/", handler.SlashRoot)
-	api.router.HandleFunc("/clients", handler.ClientsHandleFunc)
-	api.router.HandleFunc("/client/{id}", handler.ClientDetailHandleFunc)
-	api.router.HandleFunc("/jobs", handler.PendingJobsHandleFunc)
-	api.router.HandleFunc("/job/{id}", handler.PendingJobDetailsHandleFunc)
+	api.router.HandleFunc("/clients", handler.ClientsHandler)
+	api.router.HandleFunc("/clients/{id}", handler.ClientHandler)
+	api.router.HandleFunc("/clients/{id}/history", handler.ClientHistoryHandler)
+	api.router.HandleFunc("/jobs", handler.PendingJobsHandler)
+	api.router.HandleFunc("/jobs/{id}", handler.JobHandler)
+	api.router.HandleFunc("/clients/kick/{id}", handler.KickClientHandler).Methods("POST")
+	api.router.HandleFunc("/server/terminate", handler.TerminateHandler).Methods("POST")
+	api.router.HandleFunc("/report", handler.ReportHandler)
+	api.router.HandleFunc("/history", handler.HistoryHandler)
+	api.router.HandleFunc("/configure", handler.ConfigHandler).Methods("POST")
 
 	return api, nil
 }

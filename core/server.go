@@ -1,17 +1,14 @@
 package core
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"math/big"
 	"net"
-	"net/http"
 	"os"
 	"sync"
 	"time"
 
-	"github.com/gorilla/mux"
 	"github.com/steps0x29a/alohomora/report"
 	"github.com/steps0x29a/alohomora/rest"
 
@@ -53,6 +50,7 @@ type Server struct {
 	taskTimeout        uint64
 	started            time.Time
 	report             *report.Report
+	history            map[*Client][]*jobs.CrackJobInfo
 }
 
 func newServer(opts *opts.Options) *Server {
@@ -81,6 +79,7 @@ func newServer(opts *opts.Options) *Server {
 		taskTimeout:        opts.MaxTime,
 		started:            time.Now(),
 		report:             report.New(),
+		history:            make(map[*Client][]*jobs.CrackJobInfo),
 	}
 
 	return server
@@ -143,6 +142,7 @@ func (server *Server) loop() {
 			{
 				server.Lock()
 				server.Clients[client] = false
+				server.history[client] = make([]*jobs.CrackJobInfo, 0)
 				server.Unlock()
 				go server.receive(client)
 				server.onClientConnected(client)
@@ -168,6 +168,15 @@ func (server *Server) accept(listener net.Listener) {
 		}
 
 		clientID, _ := uuid.NewV4()
+
+		// A UUID starting with 'ffffff' has a special meaning to alohomora, at least when
+		// REST is enabled. Sending a POST request to kick client 'ffffff' will kick ALL clients.
+		// So using any UUID starting with 'ffffff' is highly discouraged, of course :)
+
+		for clientID.String()[:8] == "ffffff" {
+			clientID, _ = uuid.NewV4()
+		}
+
 		client := newClient(connection)
 		client.ID = clientID
 		client.connected = time.Now()
@@ -237,6 +246,10 @@ func (server *Server) onClientResponse(client *Client, message *msg.Message) {
 		term.Error("Unable to decode result: %s\n", err)
 	} else {
 		client.finished++
+
+		info := job.Info()
+		server.history[client] = append(server.history[client], info)
+
 		if result.Success {
 			term.Success("Client %s cracked the password: %s\n", term.BrightBlue(client.ShortID()), term.LabelGreen(result.Payload))
 
@@ -575,109 +588,15 @@ func (server *Server) taskTimeoutReached() bool {
 	return server.taskTimeout > 0 && time.Now().Sub(server.started).Seconds() > float64(server.taskTimeout)
 }
 
-// SlashRoot is the root endpoint of the REST API (Server implements the RESTHandler interface).
-func (server *Server) SlashRoot(res http.ResponseWriter, req *http.Request) {
-	fmt.Fprintf(res, "Hi there, this is alohomora!")
-}
-
-// ClientsHandleFunc wraps all connected clients in ClientInfo objects and marshals that
-// information to JSON. Server implements RESTHandler interface.
-func (server *Server) ClientsHandleFunc(res http.ResponseWriter, req *http.Request) {
-	clients := make([]*ClientInfo, 0)
-	for client, connected := range server.Clients {
-		if connected {
-			info := client.Info()
-			// Get current job
-			job := server.Pending[client]
-
-			if job != nil {
-				info.CurrentJob = job.ID.String()[:8]
-			}
-			clients = append(clients, info)
-		}
-	}
-
-	data, err := json.MarshalIndent(clients, "", "  ")
-	if err != nil {
-		term.Error("Unable to marshal clients to JSON: %s\n", err)
-	} else {
-		fmt.Fprint(res, string(data))
-	}
-}
-
-func (server *Server) PendingJobDetailsHandleFunc(res http.ResponseWriter, req *http.Request) {
-	params := mux.Vars(req)
-	id := params["id"]
-
-	if server.verbose {
-		term.Info("REST clent requested info on job %s\n", id)
-	}
-
-	for _, job := range server.Pending {
-		if job.ShortID() == id {
-			// This is the one
-			info := job.Info()
-			data, err := json.MarshalIndent(info, "", "  ")
-			if err != nil {
-				term.Error("Unable to marshal job to JSON: %s\n", err)
-			} else {
-				fmt.Fprint(res, string(data))
-			}
-		}
-	}
-}
-
-// ClientDetailHandleFunc wraps a single client's information in a ClientInfo object and
-// marshals that information to JSON. Server implements RESTHandler interface.
-func (server *Server) ClientDetailHandleFunc(res http.ResponseWriter, req *http.Request) {
-	params := mux.Vars(req)
-	id := params["id"]
-
-	if server.verbose {
-		term.Info("REST client requested info on client %s\n", id)
-	}
-
-	// Find the client
-	for client := range server.Clients {
-		if client.ShortID() == id {
-			info := client.Info()
-
-			// Get current job
-			job := server.Pending[client]
-
-			if job != nil {
-				info.CurrentJob = job.ID.String()[:8]
-			}
-
-			data, err := json.MarshalIndent(info, "", " ")
-			if err != nil {
-				term.Error("Unable to marshal client to JSON: %s\n", err)
-			} else {
-				fmt.Fprint(res, string(data))
-			}
-		}
-	}
-}
-
-// PendingJobsHandleFunc wraps all pending jobs in JobInfo objects and marshals that info to JSON.
-// Server implements RESTHandler interface.
-func (server *Server) PendingJobsHandleFunc(res http.ResponseWriter, req *http.Request) {
-	mapping := make(map[string]*jobs.CrackJobInfo)
-	for client, job := range server.Pending {
-		mapping[client.ShortID()] = job.Info()
-	}
-
-	data, err := json.MarshalIndent(mapping, "", "  ")
-	if err != nil {
-		term.Error("Unable to marshal pending jobs to JSON: %s\n", err)
-	} else {
-		fmt.Fprint(res, string(data))
-	}
-}
-
-func waitForTarget(target string, found chan bool) {
+func (server *Server) waitForTarget(target string, found chan bool) {
+	once := false
 	for {
 		if _, err := os.Stat(target); os.IsNotExist(err) {
+			if server.verbose && !once {
+				term.Info("Waiting for %s to become available...\n", term.BrightYellow(target))
+				once = true
+
+			}
 			time.Sleep(time.Second * 2)
 			continue
 		}
@@ -686,6 +605,29 @@ func waitForTarget(target string, found chan bool) {
 		found <- true
 		break
 	}
+}
+
+// findClient loops through all current clients connected to the server and finds the one
+// matching the provided ID. If such a client is present in the collection, it will be returned.
+// If no client was found, the function returns nil.
+func (server *Server) findClient(id string) *Client {
+	for client := range server.Clients {
+		if client.ShortID() == id || client.ID.String() == id {
+			return client
+		}
+	}
+	return nil
+}
+
+// findJob loops through all pending jobs, attempting to find the one that matches the provided
+// ID. If such a job is found, it is returned. If no such job exists, nil is returned.
+func (server *Server) findJob(id string) *jobs.CrackJob {
+	for _, job := range server.Pending {
+		if job.ShortID() == id {
+			return job
+		}
+	}
+	return nil
 }
 
 // Serve builds a new Server instance and starts listening on the provided address/port.
@@ -710,10 +652,8 @@ func Serve(opts *opts.Options) (*Server, error) {
 	go server.loop()
 
 	found := make(chan bool)
-	go waitForTarget(opts.Target, found)
-	if opts.Verbose {
-		term.Info("Waiting for %s to become available...\n", term.BrightYellow(opts.Target))
-	}
+	go server.waitForTarget(opts.Target, found)
+
 	<-found
 	if opts.Verbose {
 		term.Info("Target available, let's go!\n")

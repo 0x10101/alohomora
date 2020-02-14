@@ -8,15 +8,30 @@ type APIHandler interface {
 	// SlashRoot Handles calls to /
 	SlashRoot(res http.ResponseWriter, req *http.Request)
 
-	// ClientsHandleFunc handles calls to /clients
-	ClientsHandleFunc(res http.ResponseWriter, req *http.Request)
+	// ClientsHandler handles calls to /clients
+	ClientsHandler(res http.ResponseWriter, req *http.Request)
 
-	// PendingJobsHandleFunc handles calls to /jobs
-	PendingJobsHandleFunc(res http.ResponseWriter, req *http.Request)
+	// PendingJobsHandler handles calls to /jobs
+	PendingJobsHandler(res http.ResponseWriter, req *http.Request)
 
-	// PendingJobDetailHandleFunc handles calls to /job/{id}
-	PendingJobDetailsHandleFunc(rest http.ResponseWriter, req *http.Request)
+	// JobHandler handles calls to /job/{id}
+	JobHandler(rest http.ResponseWriter, req *http.Request)
 
-	// ClientDetailHandleFunc handles calls to /client/{id}
-	ClientDetailHandleFunc(res http.ResponseWriter, req *http.Request)
+	// ClientHandler handles calls to /client/{id}
+	ClientHandler(res http.ResponseWriter, req *http.Request)
+
+	// KickClientHandler handles calls to /client/kick/{id}
+	KickClientHandler(res http.ResponseWriter, req *http.Request)
+
+	// TerminateHandler handles calls to /server/terminate
+	TerminateHandler(res http.ResponseWriter, req *http.Request)
+
+	// ReportHandler handles calls to /server/report
+	ReportHandler(res http.ResponseWriter, req *http.Request)
+
+	HistoryHandler(res http.ResponseWriter, req *http.Request)
+
+	ClientHistoryHandler(res http.ResponseWriter, req *http.Request)
+
+	ConfigHandler(res http.ResponseWriter, req *http.Request)
 }

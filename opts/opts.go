@@ -16,19 +16,19 @@ type Options struct {
 	Port               uint
 	Host               string
 	Mode               string
-	Verbose            bool
+	Verbose            bool `json:"verbose"`
 	Unfancy            bool
 	Charset            string
 	Jobsize            string
 	Passlen            uint
 	Offset             string
 	Target             string
-	Timeout            uint64
+	Timeout            uint64 `json:"timeout"`
 	ReportXMLTarget    string
 	ReportJSONTarget   string
 	QueueSize          uint64
-	MaxJobs            string
-	MaxTime            uint64
+	MaxJobs            string `json:"maxjobs"`
+	MaxTime            uint64 `json:"jobtimeout"`
 	EnableREST         bool
 	RESTAddress        string
 	RESTPort           uint
