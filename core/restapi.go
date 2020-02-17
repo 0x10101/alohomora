@@ -13,6 +13,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/steps0x29a/alohomora/handshakes"
+
 	"github.com/steps0x29a/alohomora/bigint"
 
 	"github.com/steps0x29a/alohomora/opts"
@@ -102,7 +104,42 @@ func (server *Server) KickAllHandler(res http.ResponseWriter, req *http.Request)
 	respondWithJSON(res, http.StatusOK, "OK")
 }
 
+func (server *Server) TargetHandler(res http.ResponseWriter, req *http.Request) {
+	if server.verbose {
+		term.Info("REST client requested target\n")
+	}
+
+	essid, bssid, err := handshakes.HandshakeInfo(server.opts.Target)
+	if err != nil {
+		term.Warn("Unable to parse %s: %s\n", server.opts.Target, err)
+		respondWithError(res, http.StatusInternalServerError, "Unable to parse target file")
+		return
+	}
+
+	obj := struct {
+		Filename string `json:"filename"`
+		BSSID    string `json:"bssid"`
+		ESSID    string `json:"essid"`
+	}{
+		server.opts.Target,
+		bssid,
+		essid,
+	}
+
+	fmt.Println(obj)
+
+	respondWithJSON(res, http.StatusOK, obj)
+}
+
 func (server *Server) ConfigHandler(res http.ResponseWriter, req *http.Request) {
+	if server.verbose {
+		term.Info("REST client requested server config\n")
+	}
+
+	respondWithJSON(res, http.StatusOK, server.opts)
+}
+
+func (server *Server) ConfigureHandler(res http.ResponseWriter, req *http.Request) {
 	body, err := ioutil.ReadAll(io.LimitReader(req.Body, 1048576))
 	if err != nil {
 		respondWithError(res, http.StatusUnprocessableEntity, "Sorry")

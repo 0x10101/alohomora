@@ -13,27 +13,27 @@ import (
 //The Options type wraps all command line options in a neat struct for easier handling.
 type Options struct {
 	Server             bool
-	Port               uint
-	Host               string
-	Mode               string
+	Port               uint `json:"port"`
+	Host               string `json:"ip"`
+	Mode               string `json:"mode"`
 	Verbose            bool `json:"verbose"`
-	Unfancy            bool
-	Charset            string
-	Jobsize            string
-	Passlen            uint
-	Offset             string
-	Target             string
+	Unfancy            bool `json:"unfancy"`
+	Charset            string `json:"charset"`
+	Jobsize            string `json:"jobsize"`
+	Passlen            uint `json:"password_length"`
+	Offset             string `json:"offset"`
+	Target             string `json:"target"`
 	Timeout            uint64 `json:"timeout"`
-	ReportXMLTarget    string
-	ReportJSONTarget   string
-	QueueSize          uint64
+	ReportXMLTarget    string `json:"report_xml_target"`
+	ReportJSONTarget   string `json:"report_json_target"`
+	QueueSize          uint64 `json:"queue_size"`
 	MaxJobs            string `json:"maxjobs"`
 	MaxTime            uint64 `json:"jobtimeout"`
-	EnableREST         bool
+	EnableREST         bool 
 	RESTAddress        string
 	RESTPort           uint
 	ConnectionAttempts uint
-	ForceCharset       bool
+	ForceCharset       bool `json:"force_charset"`
 }
 
 const (

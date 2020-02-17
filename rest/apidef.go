@@ -33,5 +33,9 @@ type APIHandler interface {
 
 	ClientHistoryHandler(res http.ResponseWriter, req *http.Request)
 
+	ConfigureHandler(res http.ResponseWriter, req *http.Request)
+
 	ConfigHandler(res http.ResponseWriter, req *http.Request)
+
+	TargetHandler(res http.ResponseWriter, req *http.Request)
 }

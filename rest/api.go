@@ -32,10 +32,12 @@ func NewAPI(handler APIHandler, address string, port uint) (*API, error) {
 	api.router.HandleFunc("/jobs", handler.PendingJobsHandler)
 	api.router.HandleFunc("/jobs/{id}", handler.JobHandler)
 	api.router.HandleFunc("/clients/kick/{id}", handler.KickClientHandler).Methods("POST")
-	api.router.HandleFunc("/server/terminate", handler.TerminateHandler).Methods("POST")
+	api.router.HandleFunc("/terminate", handler.TerminateHandler).Methods("POST")
 	api.router.HandleFunc("/report", handler.ReportHandler)
 	api.router.HandleFunc("/history", handler.HistoryHandler)
-	api.router.HandleFunc("/configure", handler.ConfigHandler).Methods("POST")
+	api.router.HandleFunc("/configure", handler.ConfigureHandler).Methods("POST")
+	api.router.HandleFunc("/config", handler.ConfigHandler)
+	api.router.HandleFunc("/target", handler.TargetHandler)
 
 	return api, nil
 }

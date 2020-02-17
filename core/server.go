@@ -51,6 +51,7 @@ type Server struct {
 	started            time.Time
 	report             *report.Report
 	history            map[*Client][]*jobs.CrackJobInfo
+	opts               *opts.Options
 }
 
 func newServer(opts *opts.Options) *Server {
@@ -80,6 +81,7 @@ func newServer(opts *opts.Options) *Server {
 		started:            time.Now(),
 		report:             report.New(),
 		history:            make(map[*Client][]*jobs.CrackJobInfo),
+		opts:               opts,
 	}
 
 	return server
