@@ -29,13 +29,21 @@ type APIHandler interface {
 	// ReportHandler handles calls to /server/report
 	ReportHandler(res http.ResponseWriter, req *http.Request)
 
+	// HistoryHandler handles calls to the history endpoint.
 	HistoryHandler(res http.ResponseWriter, req *http.Request)
 
+	// ClientHistoryHandler handles calls to the history-per-client endpoint
 	ClientHistoryHandler(res http.ResponseWriter, req *http.Request)
 
+	// ConfigureHandler handles calls to the configuration endpoint that enables the
+	// REST client to configure limited parts of the server config.
 	ConfigureHandler(res http.ResponseWriter, req *http.Request)
 
+	// ConfigHandler handles calls to the config endpoint that pulls the
+	// server's configuration from the API
 	ConfigHandler(res http.ResponseWriter, req *http.Request)
 
+	// TargetHandler handles calls to the target endpoint, getting information on the
+	// server's target.
 	TargetHandler(res http.ResponseWriter, req *http.Request)
 }

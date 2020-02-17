@@ -66,6 +66,7 @@ func (server *Server) JobHandler(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// ClientHistoryHandler sends a single client's history to the REST client.
 func (server *Server) ClientHistoryHandler(res http.ResponseWriter, req *http.Request) {
 	params := mux.Vars(req)
 	id := params["id"]
@@ -88,6 +89,8 @@ func (server *Server) ClientHistoryHandler(res http.ResponseWriter, req *http.Re
 
 }
 
+// HistoryHandler handles calls to the history endpoint, which gathers all past jobs
+// and sends them to the client.
 func (server *Server) HistoryHandler(res http.ResponseWriter, req *http.Request) {
 
 	if server.verbose {
@@ -104,6 +107,8 @@ func (server *Server) KickAllHandler(res http.ResponseWriter, req *http.Request)
 	respondWithJSON(res, http.StatusOK, "OK")
 }
 
+// TargetHandler handles calls to /target, sending the client some information on the
+// target file.
 func (server *Server) TargetHandler(res http.ResponseWriter, req *http.Request) {
 	if server.verbose {
 		term.Info("REST client requested target\n")
@@ -131,6 +136,7 @@ func (server *Server) TargetHandler(res http.ResponseWriter, req *http.Request) 
 	respondWithJSON(res, http.StatusOK, obj)
 }
 
+// ConfigHandler sends the current server configuration to the REST client.
 func (server *Server) ConfigHandler(res http.ResponseWriter, req *http.Request) {
 	if server.verbose {
 		term.Info("REST client requested server config\n")
@@ -139,6 +145,7 @@ func (server *Server) ConfigHandler(res http.ResponseWriter, req *http.Request) 
 	respondWithJSON(res, http.StatusOK, server.opts)
 }
 
+// ConfigureHandler allows the client to configure the server's verbosity, timeout, max jobs count and task timeout.
 func (server *Server) ConfigureHandler(res http.ResponseWriter, req *http.Request) {
 	body, err := ioutil.ReadAll(io.LimitReader(req.Body, 1048576))
 	if err != nil {
