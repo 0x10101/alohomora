@@ -339,6 +339,7 @@ func (server *Server) handle(client *Client, message *msg.Message) {
 }
 func (server *Server) recv(client *Client) {
 	for {
+		term.Info("Ready to receive...")
 		reader := bufio.NewReader(client.Socket)
 		data, err := reader.ReadBytes('\n')
 		if err != nil {

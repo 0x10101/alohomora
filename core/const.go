@@ -16,6 +16,4 @@ const (
 )
 
 //AlohomoraSuffix is a magic number postfixed to every message exchanged between clients and server
-//var AlohomoraSuffix = []byte{'\x00'}
-
-var AlohomoraSuffix = []byte{10, 10, 0x29, 0x10, 10, 10}
+var AlohomoraSuffix = []byte{'\x10', '\x10', '\x29', '\x0a', '\x10', '\x10'}
