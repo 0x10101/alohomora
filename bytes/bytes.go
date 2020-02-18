@@ -18,3 +18,8 @@ func EndsWith(buffer, value []byte) bool {
 
 	return true
 }
+
+func TrimLast(buffer []byte) []byte {
+	l := len(buffer)
+	return buffer[:l-1]
+}

@@ -1,6 +1,7 @@
 package core
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"io"
@@ -310,6 +311,33 @@ func (client *Client) receive() {
 	}
 }
 
+func (client *Client) snd(message *msg.Message) {
+	data, err := message.Encode()
+	if err != nil {
+		term.Error("Unable to encode message: %s\n", err)
+		client.Errors <- err
+		return
+	}
+
+	writer := bufio.NewWriter(client.Socket)
+	num1, err := writer.Write(data)
+	if err != nil {
+		term.Error("Unable to send message to server: %s\n", err)
+		client.Errors <- err
+		return
+	}
+
+	num2, err := writer.Write(AlohomoraSuffix)
+	if err != nil {
+		term.Error("Unable to send message to server: %s\n", err)
+		client.Errors <- err
+		return
+	}
+	fmt.Println(data)
+	term.Info("Sent %d bytes to server\n", num1+num2)
+
+}
+
 func (client *Client) send(message *msg.Message) {
 	data, err := message.Encode()
 	if err != nil {
@@ -318,7 +346,7 @@ func (client *Client) send(message *msg.Message) {
 		return
 	}
 
-	_, err = client.Socket.Write(data)
+	num1, err := client.Socket.Write(data)
 	// TODO: Handle incomplete writes
 	if err != nil {
 		term.Error("Unable to send message: %s\n", err)
@@ -326,12 +354,14 @@ func (client *Client) send(message *msg.Message) {
 		return
 	}
 
-	_, err = client.Socket.Write(AlohomoraSuffix)
+	num2, err := client.Socket.Write(AlohomoraSuffix)
 	if err != nil {
 		term.Error("Unable to send suffix: %s\n", err)
 		client.Errors <- err
 		return
 	}
+
+	term.Info("Sent %d bytes to server\n", num1+num2)
 }
 
 // Shutdown cleans up the client's temp file(s)

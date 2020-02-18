@@ -1,6 +1,7 @@
 package core
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"math/big"
@@ -147,6 +148,7 @@ func (server *Server) loop() {
 				server.history[client] = make([]*jobs.CrackJobInfo, 0)
 				server.Unlock()
 				go server.receive(client)
+				//go server.recv(client)
 				server.onClientConnected(client)
 			}
 
@@ -333,6 +335,34 @@ func (server *Server) handle(client *Client, message *msg.Message) {
 			server.onClientError(client, message)
 			break
 		}
+	}
+}
+func (server *Server) recv(client *Client) {
+	for {
+		reader := bufio.NewReader(client.Socket)
+		data, err := reader.ReadBytes('\n')
+		if err != nil {
+			// Read failed
+			server.unregister <- client
+			term.Warn("Failed to read from client socket (%s): %s\n", client.ShortID(), err)
+			return
+		}
+
+		term.Info("Read %d bytes from client (with suffix)\n", len(data))
+
+		data = bytes.TrimLast(data)
+		term.Info("Trimmed last byte, now have %d left\n", len(data))
+		fmt.Println(string(data))
+		fmt.Println(data)
+
+		decoded, err := msg.Decode(data)
+		if err != nil {
+			term.Error("Unable to decode message from %s: %s\n", client.ShortID(), err)
+			server.unregister <- client
+			return
+		}
+
+		go server.handle(client, decoded)
 	}
 }
 
