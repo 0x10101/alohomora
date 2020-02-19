@@ -113,6 +113,17 @@ func (job *CrackJob) DecodeWPA2() (*WPA2Payload, error) {
 	return tmpStruct, nil
 }
 
+func (job *CrackJob) DecodeMD5() (*MD5Payload, error) {
+	tmp := bytes.NewBuffer(job.Payload)
+	tmpStruct := new(MD5Payload)
+	decoder := gob.NewDecoder(tmp)
+	err := decoder.Decode(tmpStruct)
+	if err != nil {
+		return nil, err
+	}
+	return tmpStruct, nil
+}
+
 // Encode encodes a CrackJob object to a byte slice that can be sent via
 // a socket connection.
 func (job *CrackJob) Encode() ([]byte, error) {
@@ -123,6 +134,28 @@ func (job *CrackJob) Encode() ([]byte, error) {
 		return nil, err
 	}
 	return buffer.Bytes(), nil
+}
+
+func NewMD5Job(data []byte, salt []byte, charset []rune, length int64, offset *big.Int, amount int64) (*CrackJob, error) {
+	id, err := uuid.NewV4()
+	if err != nil {
+		return nil, err
+	}
+
+	params := &GenerationParams{Charset: charset, Length: length, Offset: offset, Amount: amount}
+	tmppayload := &MD5Payload{Data: data, Salt: salt}
+	payload, err := tmppayload.Encode()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &CrackJob{
+		Type:    MD5,
+		ID:      id,
+		Payload: payload,
+		Gen:     params,
+	}, nil
 }
 
 // NewWPA2Job generates a new WPA2 crack job from the given parameters.

@@ -4,14 +4,16 @@ package jobs
 type JobType int
 
 const (
+	// UNDEFINED identifies crackjobs that have not been defined
+	UNDEFINED JobType = 0
+
 	// WPA2 identifies a WPA2 crackjob
 	WPA2 JobType = 1
+
+	// MD5 identifies an MD5 crackjob
+	MD5 JobType = 2
 )
 
 func (t JobType) String() string {
-	if t == WPA2 {
-		return "WPA2"
-	}
-
-	return "?"
+	return [...]string{"<undefined>", "WPA2", "MD5"}[t]
 }

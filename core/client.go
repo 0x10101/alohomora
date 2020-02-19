@@ -2,6 +2,7 @@ package core
 
 import (
 	"bufio"
+	"crypto/md5"
 	"errors"
 	"fmt"
 	"io"
@@ -100,7 +101,24 @@ func newClient(socket net.Conn) *Client {
 	}
 }
 
-func generatePasswords(params *jobs.GenerationParams) (string, error) {
+func generatePasswords(params *jobs.GenerationParams) ([]string, error) {
+	buffer := make([]string, params.Amount)
+	term.Info("Generating %d passwords...", params.Amount)
+	var i int64
+	for i = 0; i < params.Amount; i++ {
+		pw, err := gen.GeneratePassword(params.Charset, params.Length, bigint.Add(params.Offset, big.NewInt(i)))
+		if err != nil {
+			return nil, err
+		}
+		buffer[i] = pw
+	}
+
+	//term.Info("Generated %d passwords\n", params.Amount)
+	fmt.Printf("%s\n", term.BrightGreen("OK"))
+	return buffer, nil
+}
+
+func generatePasswordFile(params *jobs.GenerationParams) (string, error) {
 	path, err := fio.TempFilePath()
 	if err != nil {
 		return "", err
@@ -190,7 +208,7 @@ func (client *Client) work(job *jobs.CrackJob) ([]byte, bool, error) {
 		}
 
 		// Generate passwords
-		pwFilepath, err := generatePasswords(job.Gen)
+		pwFilepath, err := generatePasswordFile(job.Gen)
 		if err != nil {
 			return nil, false, err
 		}
@@ -218,6 +236,54 @@ func (client *Client) work(job *jobs.CrackJob) ([]byte, bool, error) {
 
 		enc, err := result.Encode()
 		return enc, found, err
+	} else if job.Type == jobs.MD5 {
+		// Just tell server that we failed for now
+
+		if job.Payload == nil {
+			return nil, false, errors.New("Empty payloads not supported in MD5 mode")
+		}
+
+		decoded, err := job.DecodeMD5()
+		if err != nil {
+			return nil, false, err
+		}
+
+		passwords, err := generatePasswords(job.Gen)
+		if err != nil {
+			return nil, false, err
+		}
+
+		term.Info("Computing hashes...\n")
+		for _, password := range passwords {
+
+			salt := string(decoded.Salt)
+			hash := string(decoded.Data)
+			var candidates []string
+			if len(salt) > 0 {
+				candidates = []string{password, salt + password, password + salt, salt + "$" + password, password + "$" + salt}
+			} else {
+				candidates = []string{password}
+			}
+
+			for _, candidate := range candidates {
+
+				h := md5.New()
+				io.WriteString(h, candidate)
+				digest := fmt.Sprintf("%x", h.Sum(nil))
+
+				if digest == hash {
+					term.Success("%s\n", term.LabelGreen("Cracked the hash!"))
+					result := &jobs.CrackJobResult{Payload: candidate, JobID: job.ID, Success: true}
+					enc, err := result.Encode()
+					return enc, true, err
+				}
+			}
+
+		}
+		// Not cracked
+		result := &jobs.CrackJobResult{Payload: "", JobID: job.ID, Success: false}
+		enc, err := result.Encode()
+		return enc, false, err
 	}
 
 	term.Warn("Only WPA2 jobs are implemented as of now\n")
@@ -320,21 +386,20 @@ func (client *Client) snd(message *msg.Message) {
 	}
 
 	writer := bufio.NewWriter(client.Socket)
-	num1, err := writer.Write(data)
+	_, err = writer.Write(data)
 	if err != nil {
 		term.Error("Unable to send message to server: %s\n", err)
 		client.Errors <- err
 		return
 	}
 
-	num2, err := writer.Write(AlohomoraSuffix)
+	_, err = writer.Write(AlohomoraSuffix)
 	if err != nil {
 		term.Error("Unable to send message to server: %s\n", err)
 		client.Errors <- err
 		return
 	}
 	fmt.Println(data)
-	term.Info("Sent %d bytes to server\n", num1+num2)
 
 }
 
@@ -346,7 +411,7 @@ func (client *Client) send(message *msg.Message) {
 		return
 	}
 
-	num1, err := client.Socket.Write(data)
+	_, err = client.Socket.Write(data)
 	// TODO: Handle incomplete writes
 	if err != nil {
 		term.Error("Unable to send message: %s\n", err)
@@ -354,14 +419,13 @@ func (client *Client) send(message *msg.Message) {
 		return
 	}
 
-	num2, err := client.Socket.Write(AlohomoraSuffix)
+	_, err = client.Socket.Write(AlohomoraSuffix)
 	if err != nil {
 		term.Error("Unable to send suffix: %s\n", err)
 		client.Errors <- err
 		return
 	}
 
-	term.Info("Sent %d bytes to server\n", num1+num2)
 }
 
 // Shutdown cleans up the client's temp file(s)

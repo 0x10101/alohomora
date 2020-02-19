@@ -13,14 +13,14 @@ import (
 //The Options type wraps all command line options in a neat struct for easier handling.
 type Options struct {
 	Server             bool
-	Port               uint `json:"port"`
+	Port               uint   `json:"port"`
 	Host               string `json:"ip"`
 	Mode               string `json:"mode"`
-	Verbose            bool `json:"verbose"`
-	Unfancy            bool `json:"unfancy"`
+	Verbose            bool   `json:"verbose"`
+	Unfancy            bool   `json:"unfancy"`
 	Charset            string `json:"charset"`
 	Jobsize            string `json:"jobsize"`
-	Passlen            uint `json:"password_length"`
+	Passlen            uint   `json:"password_length"`
 	Offset             string `json:"offset"`
 	Target             string `json:"target"`
 	Timeout            uint64 `json:"timeout"`
@@ -29,7 +29,7 @@ type Options struct {
 	QueueSize          uint64 `json:"queue_size"`
 	MaxJobs            string `json:"maxjobs"`
 	MaxTime            uint64 `json:"jobtimeout"`
-	EnableREST         bool 
+	EnableREST         bool
 	RESTAddress        string
 	RESTPort           uint
 	ConnectionAttempts uint
@@ -263,7 +263,7 @@ func (opts Options) validate() error {
 			return errors.New("A target is required")
 		}
 
-		if opts.Mode != "WPA2" {
+		if opts.Mode != "WPA2" && opts.Mode != "MD5" {
 			return fmt.Errorf("Unknown job type: %s", opts.Mode)
 		}
 

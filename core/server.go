@@ -2,11 +2,13 @@ package core
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"math/big"
 	"net"
 	"os"
+	"regexp"
 	"sync"
 	"time"
 
@@ -436,13 +438,15 @@ func (server *Server) dispatch() {
 				client, _ := <-server.freeClients
 
 				job, _ := <-server.Queue
-
+				var tmp []byte
 				// We need the payload should this client succeed. So save it before omitting it
-				tmp := job.Payload
+				if job.Type == jobs.WPA2 {
+					tmp = job.Payload
 
-				if client.finished > 0 {
-					// Assume client already knows the handshake
-					job.Payload = nil
+					if client.finished > 0 {
+						// Assume client already knows the handshake
+						job.Payload = nil
+					}
 				}
 
 				payload, err := job.Encode()
@@ -452,8 +456,10 @@ func (server *Server) dispatch() {
 					return
 				}
 
-				// Give the job its payload back
-				job.Payload = tmp
+				if job.Type == jobs.WPA2 {
+					// Give the job its payload back
+					job.Payload = tmp
+				}
 
 				job.Started = time.Now()
 				server.Lock()
@@ -475,16 +481,48 @@ func (server *Server) dispatch() {
 	}
 }
 
-func (server *Server) initCrackjobs(opts *opts.Options) {
+func (server *Server) getHandshakeData(opts *opts.Options) (*handshakes.Handshake, error) {
 	var filepath = opts.Target
 	var handshake = handshakes.NewHandshake()
 	err := handshake.Read(filepath)
 	if err != nil {
 		// This is bad
-		term.Error("Unable to process target: %s\n", err)
-		server.Terminate()
-		return
+		//term.Error("Unable to process target: %s\n", err)
+		//server.Terminate()
+		return handshake, nil
 	}
+	return nil, err
+}
+
+func (server *Server) getMD5Data(opts *opts.Options) ([]byte, []byte, error) {
+
+	// Target should contain a valid MD5 hash and an optional salt
+	if len(opts.Target) == 0 {
+		return nil, nil, errors.New("Empty target not allowed")
+	}
+
+	// Delimiter for salt is :
+	r := regexp.MustCompile("(?P<hash>[0-9a-f]{32})(?P<salt>:[0-9a-f]+)?")
+
+	match := r.FindStringSubmatch(opts.Target)
+	var hash, salt string
+	for i, name := range r.SubexpNames() {
+		if name == "hash" {
+			hash = match[i]
+		}
+		if name == "salt" {
+			salt = match[i]
+		}
+	}
+
+	if len(hash) == 0 {
+		return nil, nil, errors.New("Empty hash not supported")
+	}
+
+	return []byte(hash), []byte(salt), nil
+}
+
+func (server *Server) initCrackjobs(opts *opts.Options) {
 
 	charset := []rune(opts.Charset)
 	length := int64(opts.Passlen)
@@ -525,15 +563,44 @@ func (server *Server) initCrackjobs(opts *opts.Options) {
 		//first, _ := gen.GeneratePassword(charset, length, calcOffset)
 		//last, _ := gen.GeneratePassword(charset, length, endOffset)
 
-		job, err := jobs.NewWPA2Job(
-			handshake.Data,
-			charset,
-			length,
-			calcOffset,
-			runAmount.Int64(),
-			handshake.ESSID,
-			handshake.BSSID,
-		)
+		var job *jobs.CrackJob
+		var err error
+
+		if opts.Mode == "WPA2" {
+			handshake, err := server.getHandshakeData(opts)
+			if err != nil {
+				// Unable to process handshake
+				term.Error("Unable to process handshake: %s\n", err)
+				server.Terminate()
+				return
+			}
+			job, err = jobs.NewWPA2Job(
+				handshake.Data,
+				charset,
+				length,
+				calcOffset,
+				runAmount.Int64(),
+				handshake.ESSID,
+				handshake.BSSID,
+			)
+		} else if opts.Mode == "MD5" {
+			hash, salt, err := server.getMD5Data(opts)
+			if err != nil {
+				// Unable to process hash data
+				term.Error("Unable to process MD5 data: %s\n", err)
+				server.Terminate()
+				return
+			}
+
+			job, err = jobs.NewMD5Job(
+				hash,
+				salt,
+				charset,
+				length,
+				calcOffset,
+				runAmount.Int64(),
+			)
+		}
 
 		if err != nil {
 			term.Error("Unable to generate Crackjob: %s\n", err)
@@ -542,9 +609,6 @@ func (server *Server) initCrackjobs(opts *opts.Options) {
 		}
 
 		jobindex = bigint.Add(jobindex, big.NewInt(1))
-		/*if server.verbose {
-			term.Info("Generated Crackjob %s (%s - %s)\n", term.Cyan(job.String()), term.BrightBlue(first), term.BrightBlue(last))
-		}*/
 
 		server.Queue <- job
 		if bigint.GtE(jobindex, server.maxjobs) && bigint.Gt(server.maxjobs, big.NewInt(0)) {
@@ -684,12 +748,14 @@ func Serve(opts *opts.Options) (*Server, error) {
 	go server.accept(listener)
 	go server.loop()
 
-	found := make(chan bool)
-	go server.waitForTarget(opts.Target, found)
+	if opts.Mode == "WPA2" {
+		found := make(chan bool)
+		go server.waitForTarget(opts.Target, found)
 
-	<-found
-	if opts.Verbose {
-		term.Info("Target available, let's go!\n")
+		<-found
+		if opts.Verbose {
+			term.Info("Target available, let's go!\n")
+		}
 	}
 
 	go server.initCrackjobs(opts)
