@@ -229,6 +229,16 @@ func validateRESTOptions(opts Options) error {
 	return nil
 }
 
+func validateMode(mode string) error {
+	validModes := []string{"WPA2", "MD5", "SHA1", "SHA256", "SHA512"}
+	for _, m := range validModes {
+		if m == mode {
+			return nil
+		}
+	}
+	return fmt.Errorf("Invalid mode: %s", mode)
+}
+
 func (opts Options) validate() error {
 	if opts.Server {
 		if len(opts.Host) == 0 {
@@ -263,8 +273,8 @@ func (opts Options) validate() error {
 			return errors.New("A target is required")
 		}
 
-		if opts.Mode != "WPA2" && opts.Mode != "MD5" {
-			return fmt.Errorf("Unknown job type: %s", opts.Mode)
+		if err := validateMode(opts.Mode); err != nil {
+			return err
 		}
 
 	} else {

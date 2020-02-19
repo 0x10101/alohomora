@@ -11,6 +11,9 @@ func TestString(t *testing.T) {
 	}{
 		{WPA2, "WPA2"},
 		{MD5, "MD5"},
+		{SHA1, "SHA1"},
+		{SHA256, "SHA256"},
+		{SHA512, "SHA512"},
 	}
 
 	for _, x := range table {

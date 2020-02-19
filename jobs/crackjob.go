@@ -113,9 +113,9 @@ func (job *CrackJob) DecodeWPA2() (*WPA2Payload, error) {
 	return tmpStruct, nil
 }
 
-func (job *CrackJob) DecodeMD5() (*MD5Payload, error) {
+func (job *CrackJob) DecodeHash() (*HashPayload, error) {
 	tmp := bytes.NewBuffer(job.Payload)
-	tmpStruct := new(MD5Payload)
+	tmpStruct := new(HashPayload)
 	decoder := gob.NewDecoder(tmp)
 	err := decoder.Decode(tmpStruct)
 	if err != nil {
@@ -136,14 +136,14 @@ func (job *CrackJob) Encode() ([]byte, error) {
 	return buffer.Bytes(), nil
 }
 
-func NewMD5Job(data []byte, salt []byte, charset []rune, length int64, offset *big.Int, amount int64) (*CrackJob, error) {
+func NewHashJob(t JobType, data []byte, salt []byte, charset []rune, length int64, offset *big.Int, amount int64) (*CrackJob, error) {
 	id, err := uuid.NewV4()
 	if err != nil {
 		return nil, err
 	}
 
 	params := &GenerationParams{Charset: charset, Length: length, Offset: offset, Amount: amount}
-	tmppayload := &MD5Payload{Data: data, Salt: salt}
+	tmppayload := &HashPayload{Data: data, Salt: salt}
 	payload, err := tmppayload.Encode()
 
 	if err != nil {
@@ -151,7 +151,7 @@ func NewMD5Job(data []byte, salt []byte, charset []rune, length int64, offset *b
 	}
 
 	return &CrackJob{
-		Type:    MD5,
+		Type:    t,
 		ID:      id,
 		Payload: payload,
 		Gen:     params,

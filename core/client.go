@@ -3,8 +3,12 @@ package core
 import (
 	"bufio"
 	"crypto/md5"
+	"crypto/sha1"
+	"crypto/sha256"
+	"crypto/sha512"
 	"errors"
 	"fmt"
+	"hash"
 	"io"
 	"math/big"
 	"net"
@@ -172,6 +176,77 @@ func writeTmpBinFile(data []byte) (string, error) {
 
 }
 
+func getHash(t jobs.JobType) (hash.Hash, error) {
+	if t == jobs.MD5 {
+		return md5.New(), nil
+	}
+
+	if t == jobs.SHA1 {
+		return sha1.New(), nil
+	}
+
+	if t == jobs.SHA256 {
+		return sha256.New(), nil
+	}
+
+	if t == jobs.SHA512 {
+		return sha512.New(), nil
+	}
+
+	return nil, fmt.Errorf("Unknown jobtype: %s", t)
+}
+
+func (client *Client) workHash(job *jobs.CrackJob) ([]byte, bool, error) {
+	if job.Payload == nil {
+		return nil, false, errors.New("Empty payloads not supported in hash mode")
+	}
+
+	decoded, err := job.DecodeHash()
+	if err != nil {
+		return nil, false, err
+	}
+
+	passwords, err := generatePasswords(job.Gen)
+	if err != nil {
+		return nil, false, err
+	}
+
+	term.Info("Computing hashes...\n")
+	for _, password := range passwords {
+		salt := string(decoded.Salt)
+		hash := string(decoded.Data)
+		var candidates []string
+		if len(salt) > 0 {
+			candidates = []string{password, salt + password, password + salt, salt + "$" + password, password + "$" + salt}
+		} else {
+			candidates = []string{password}
+		}
+
+		for _, candidate := range candidates {
+
+			h, err := getHash(job.Type)
+			if err != nil {
+				return nil, false, err
+			}
+
+			io.WriteString(h, candidate)
+			digest := fmt.Sprintf("%x", h.Sum(nil))
+
+			if digest == hash {
+				term.Success("%s\n", term.LabelGreen("Cracked the hash!"))
+				result := &jobs.CrackJobResult{Payload: candidate, JobID: job.ID, Success: true}
+				enc, err := result.Encode()
+				return enc, true, err
+			}
+		}
+
+	}
+	// Not cracked
+	result := &jobs.CrackJobResult{Payload: "", JobID: job.ID, Success: false}
+	enc, err := result.Encode()
+	return enc, false, err
+}
+
 func (client *Client) work(job *jobs.CrackJob) ([]byte, bool, error) {
 
 	// Decode crackjob' payload
@@ -236,14 +311,13 @@ func (client *Client) work(job *jobs.CrackJob) ([]byte, bool, error) {
 
 		enc, err := result.Encode()
 		return enc, found, err
-	} else if job.Type == jobs.MD5 {
-		// Just tell server that we failed for now
-
-		if job.Payload == nil {
+	} else if job.Type == jobs.SHA1 {
+		return client.workHash(job)
+		/*if job.Payload == nil {
 			return nil, false, errors.New("Empty payloads not supported in MD5 mode")
 		}
 
-		decoded, err := job.DecodeMD5()
+		decoded, err := job.DecodeHash()
 		if err != nil {
 			return nil, false, err
 		}
@@ -267,7 +341,7 @@ func (client *Client) work(job *jobs.CrackJob) ([]byte, bool, error) {
 
 			for _, candidate := range candidates {
 
-				h := md5.New()
+				h := sha1.New()
 				io.WriteString(h, candidate)
 				digest := fmt.Sprintf("%x", h.Sum(nil))
 
@@ -283,7 +357,58 @@ func (client *Client) work(job *jobs.CrackJob) ([]byte, bool, error) {
 		// Not cracked
 		result := &jobs.CrackJobResult{Payload: "", JobID: job.ID, Success: false}
 		enc, err := result.Encode()
-		return enc, false, err
+		return enc, false, err*/
+
+	} else if job.Type == jobs.MD5 {
+
+		return client.workHash(job)
+		/*
+			if job.Payload == nil {
+				return nil, false, errors.New("Empty payloads not supported in MD5 mode")
+			}
+
+			decoded, err := job.DecodeHash()
+			if err != nil {
+				return nil, false, err
+			}
+
+			passwords, err := generatePasswords(job.Gen)
+			if err != nil {
+				return nil, false, err
+			}
+
+			term.Info("Computing hashes...\n")
+			for _, password := range passwords {
+
+				salt := string(decoded.Salt)
+				hash := string(decoded.Data)
+				var candidates []string
+				if len(salt) > 0 {
+					candidates = []string{password, salt + password, password + salt, salt + "$" + password, password + "$" + salt}
+				} else {
+					candidates = []string{password}
+				}
+
+				for _, candidate := range candidates {
+
+					h := md5.New()
+					io.WriteString(h, candidate)
+					digest := fmt.Sprintf("%x", h.Sum(nil))
+
+					if digest == hash {
+						term.Success("%s\n", term.LabelGreen("Cracked the hash!"))
+						result := &jobs.CrackJobResult{Payload: candidate, JobID: job.ID, Success: true}
+						enc, err := result.Encode()
+						return enc, true, err
+					}
+				}
+
+			}
+			// Not cracked
+			result := &jobs.CrackJobResult{Payload: "", JobID: job.ID, Success: false}
+			enc, err := result.Encode()
+			return enc, false, err
+		*/
 	}
 
 	term.Warn("Only WPA2 jobs are implemented as of now\n")

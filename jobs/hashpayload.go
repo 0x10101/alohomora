@@ -6,14 +6,14 @@ import (
 	"fmt"
 )
 
-type MD5Payload struct {
+type HashPayload struct {
 	Data []byte
 	Salt []byte
 }
 
-// Encode encodes an MD5Payload object to an array of bytes.
+// Encode encodes a HashPayload object to an array of bytes.
 // The encoded bytes are returned as well as any errors.
-func (payload *MD5Payload) Encode() ([]byte, error) {
+func (payload *HashPayload) Encode() ([]byte, error) {
 	buffer := new(bytes.Buffer)
 	encoder := gob.NewEncoder(buffer)
 	err := encoder.Encode(payload)
@@ -23,7 +23,7 @@ func (payload *MD5Payload) Encode() ([]byte, error) {
 	return buffer.Bytes(), nil
 }
 
-func (payload *MD5Payload) String() string {
+func (payload *HashPayload) String() string {
 	if len(payload.Salt) > 0 {
 		return fmt.Sprintf("%s:%s", string(payload.Data), string(payload.Salt))
 	} else {

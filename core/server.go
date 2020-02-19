@@ -494,6 +494,34 @@ func (server *Server) getHandshakeData(opts *opts.Options) (*handshakes.Handshak
 	return nil, err
 }
 
+func (server *Server) getHashData(opts *opts.Options, hashlen int) ([]byte, []byte, error) {
+	// Target should contain a valid MD5 hash and an optional salt
+	if len(opts.Target) == 0 {
+		return nil, nil, errors.New("Empty target not allowed")
+	}
+
+	// Delimiter for salt is :
+	reg := fmt.Sprintf("(?P<hash>[0-9a-f]{%d})(?P<salt>:[0-9a-f]+)?", hashlen)
+	r := regexp.MustCompile(reg)
+
+	match := r.FindStringSubmatch(opts.Target)
+	var hash, salt string
+	for i, name := range r.SubexpNames() {
+		if name == "hash" {
+			hash = match[i]
+		}
+		if name == "salt" {
+			salt = match[i]
+		}
+	}
+
+	if len(hash) == 0 {
+		return nil, nil, errors.New("Empty hash not supported")
+	}
+
+	return []byte(hash), []byte(salt), nil
+}
+
 func (server *Server) getMD5Data(opts *opts.Options) ([]byte, []byte, error) {
 
 	// Target should contain a valid MD5 hash and an optional salt
@@ -558,11 +586,6 @@ func (server *Server) initCrackjobs(opts *opts.Options) {
 		remaining = bigint.Sub(remaining, runAmount)
 
 		var calcOffset = bigint.Add(offset, bigint.Mul(jobsize, jobindex))
-
-		//var endOffset = bigint.Sub(bigint.Add(calcOffset, runAmount), big.NewInt(1))
-		//first, _ := gen.GeneratePassword(charset, length, calcOffset)
-		//last, _ := gen.GeneratePassword(charset, length, endOffset)
-
 		var job *jobs.CrackJob
 		var err error
 
@@ -584,7 +607,7 @@ func (server *Server) initCrackjobs(opts *opts.Options) {
 				handshake.BSSID,
 			)
 		} else if opts.Mode == "MD5" {
-			hash, salt, err := server.getMD5Data(opts)
+			hash, salt, err := server.getHashData(opts, 32)
 			if err != nil {
 				// Unable to process hash data
 				term.Error("Unable to process MD5 data: %s\n", err)
@@ -592,7 +615,8 @@ func (server *Server) initCrackjobs(opts *opts.Options) {
 				return
 			}
 
-			job, err = jobs.NewMD5Job(
+			job, err = jobs.NewHashJob(
+				jobs.MD5,
 				hash,
 				salt,
 				charset,
@@ -600,6 +624,25 @@ func (server *Server) initCrackjobs(opts *opts.Options) {
 				calcOffset,
 				runAmount.Int64(),
 			)
+		} else if opts.Mode == "SHA1" {
+			hash, salt, err := server.getHashData(opts, 40)
+			if err != nil {
+				term.Error("Unable to process SHA1 data: %s\n", err)
+				server.Terminate()
+				return
+			}
+
+			job, err = jobs.NewHashJob(
+				jobs.SHA1,
+				hash,
+				salt,
+				charset,
+				length,
+				calcOffset,
+				runAmount.Int64(),
+			)
+		} else {
+			err = fmt.Errorf("Mode not supported: %s", opts.Mode)
 		}
 
 		if err != nil {
